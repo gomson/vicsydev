@@ -78,7 +78,7 @@ The C version depends on [dynamic arrays](https://github.com/codr4life/libc4life
 typedef void (c4defer_fnt)();
 ```
 
-While the lisp version is significantly shorter and clearer thanks to more powerful macros and standard library, it get's away with only using a [custom macro](https://github.com/codr4life/cl4l/blob/master/utils.lisp) for symbol generation.
+While the lisp version is significantly shorter thanks to more powerful macros and standard library, and get's away with only using a [custom macro](https://github.com/codr4life/cl4l/blob/master/utils.lisp) for symbol generation.
 
 ```lisp
 (defmacro with-defer (name &body body)

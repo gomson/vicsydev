@@ -59,7 +59,7 @@ Besides beating classes and interfaces at their own game, generic methods provid
 ```
 
 ### fixtures
-Common Lisp additionally provides the ability to easily define method fixtures to be run before, after and around the main method. Implementing the same strategy manually requires making sure that fixtures are only called from the leaves of the method tree, which interacts badly with sub classing.
+Common Lisp additionally provides the ability to easily define method fixtures to be run before, after and around the main method. Implementing the same strategy manually requires making sure that fixtures are only called from the leaves of the method tree, which interacts badly with overriding methods.
 
 ```lisp
 (defmethod complex-behaviour :after (x y)

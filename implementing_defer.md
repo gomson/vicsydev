@@ -82,12 +82,13 @@ While the lisp version is significantly shorter and clearer thanks to more power
 
 ```lisp
 (defmacro with-defer (name &body body)
-  (let ((_name (or name (gensym))))
-    `(macrolet ((,(symbol! 'do-defer- _name) (&body forms)
+  (let* ((_name (or name (gensym)))
+         (_macro-name (symbol! 'do-defer- _name)))
+    `(macrolet ((,_macro-name (&body forms)
                   (let ((n ',_name))
                     `(push (lambda () ,@forms) ,n)))
                 (do-defer (&body forms)
-                  `(,(symbol! 'defer- ',_name) ,@forms)))
+                  `(,',_macro-name ,@forms)))
        (let ((,_name))
          (unwind-protect (progn,@body)
            (dolist (fn ,_name)

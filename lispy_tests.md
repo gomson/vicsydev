@@ -49,7 +49,7 @@ I prefer my fixtures to wrap around tests, to allow using block statements for a
 ```lisp
 (define-fixture (:foo)
   (let ((foo ...))
-(call-next-fixture)))
+    (call-next-fixture)))
 ```
 
 ### implementation
@@ -170,7 +170,7 @@ Included below is the complete implementation of all functionality described her
                   internal-time-units-per-second)))))
 ```
 
-### but
+### postramble
 I've been playing around with this approach for 20 years now, and have yet to find a language where it isn't doable enough to improve on the status quo. The excuses usually offered for enforcing more ceremonial test procedures are mostly about CI; and CI in itself is mostly process fluff to cover up for lacking culture.
     
 ### peace, out

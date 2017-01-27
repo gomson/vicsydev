@@ -1,8 +1,8 @@
 # [vicsy/dev](https://github.com/codr4life/vicsydev) | implementing defer()
-posted Jan 27th 2017, 2:03 pm
+posted Jan 27th 2017, 4:20 pm
 
 ### preramble
-Golang's designers had good reasons to choose 'defer' as the one true mechanism for executing code on scope exit. The strategies for scoping resources (WITH-macros, exceptions and others) break down as soon as allocation and/or clean up depend on protected code. Implementing a comparable mechanism in other languages is perfectly doable, this post describes and compares implementations in C and Common Lisp that add the capability to defer to named/outer scopes.
+Golang's designers had good reasons to choose defer() for executing code on scope exit. The more common strategies based on code blocks (exceptions etc.) turn into suffering as soon as allocation and/or clean up depend on protected code. Implementing a comparable mechanism in other languages is perfectly doable, this post describes and compares implementations in C and Common Lisp that adds the possibility of deferring to named/outer scopes.
 
 ### example
 C

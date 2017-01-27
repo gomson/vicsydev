@@ -33,7 +33,7 @@ Premature optimisation is the root of many problems, but so is not having any id
 (index rec)                     0.0
 (index stream)                  0.0
 (index trans)                   0.0
-TOTAL 0.012
+TOTAL                         0.012
 ```
 
 ```lisp
@@ -41,7 +41,7 @@ TOTAL 0.012
 (index perf)                  0.072
 (index perf built-in)           1.0
 (index perf table)             0.08
-TOTAL 1.152
+TOTAL                         1.152
 ```
 
 ### fixtures

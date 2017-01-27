@@ -172,7 +172,7 @@ Included below is the complete implementation of all functionality described her
 ```
 
 ### postramble
-I've been playing around with this approach for 20 years now, and have yet to find a language where it isn't doable enough to improve on the status quo. The excuses usually offered for enforcing more ceremonial test procedures are mostly about CI; and CI in itself is mostly process fluff to cover up for lacking culture.
+I've been playing around with this approach for 20 years now, and have yet to find a language where it isn't doable enough to improve on the status quo. The excuses usually offered for enforcing more ceremonial test procedures are mostly about CI; and CI in itself is mostly process fluff to cover up for lacking culture, over engineering in it's purest form.
     
 ### peace, out
 You may find more posts in the same spirit <a href="http://vicsydev.blogspot.de/">here</a>, and a full implementation of this framework and more <a href="https://github.com/codr4life/cl4l">here</a>.

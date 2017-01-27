@@ -10,17 +10,16 @@ Golang's designers had good reasons to choose 'defer' as the one true mechanism 
 bool called = false;
     
 {
-  C4DEFER({ called = true; });
+  C4WITH_DEFER() { called = true; };
   assert(!called);
 }
     
 assert(called);
-
 called = false;
     
-C4DEFER_SCOPE(outer) {
-  C4DEFER_SCOPE(inner) {
-    C4DEFER_TO(outer, { called = true; });
+C4WITH_DEFER(outer) {
+  C4WITH_DEFER(inner) {
+    C4DO_DEFER(outer, { called = true; });
   }
       
   assert(!called);
@@ -49,14 +48,7 @@ assert(called);
 The C version depends on [dynamic arrays](https://github.com/codr4life/libc4life#dynamic-arrays) to keep track off actions and cleanup attributes for triggering, and uses a couple of [custom macros](https://github.com/codr4life/libc4life/blob/master/src/c4life/utils.h) for symbol generation.
 
 ```c
-#define _C4DEFER(code, _def)					              \
-  void _def() code;					                          \
-  bool C4SYMS(_def, _trigger) __attribute__((cleanup(_def)))  \
-
-#define C4DEFER(code)		   \
-  _C4DEFER(code, C4GSYM(def))  \
-
-#define _C4DEFER_SCOPE(label, _dyna, _free)	              \
+#define _C4WITH_DEFER(label, _dyna, _free)	              \
   struct c4dyna _dyna;					                  \
   void _free() {					                      \
     C4DO_DYNA(&_dyna, _fn) { (*(c4defer_fnt **)_fn)(); }  \
@@ -65,20 +57,20 @@ The C version depends on [dynamic arrays](https://github.com/codr4life/libc4life
 							                              \
   for (struct c4dyna *label				                  \
 	 __attribute__((cleanup(_free))) =		              \
-	 c4dyna_init(&_dyna, sizeof(c4defer_fnt *));	      \
+	   c4dyna_init(&_dyna, sizeof(c4defer_fnt *));        \
        label;						                      \
        label = NULL)					                  \
     
-#define C4DEFER_SCOPE(label)				         \
-  _C4DEFER_SCOPE(label, C4GSYM(dyna), C4GSYM(free))	 \
+#define C4WITH_DEFER(label)				            \
+  _C4WITH_DEFER(label, C4GSYM(dyna), C4GSYM(free))  \
 
-#define C4DEFER_TO(label, code)					            \
+#define C4DO_DEFER(label, code)					            \
   *((c4defer_fnt **)c4dyna_push(label)) = C4FN(code, void)	\
 
 typedef void (c4defer_fnt)();
 ```
 
-While the lisp version is significantly shorter thanks to more powerful macros and standard library, and get's away with only using a [custom macro](https://github.com/codr4life/cl4l/blob/master/utils.lisp) for symbol generation.
+While the lisp version is shorter and more independent thanks to more powerful macros and standard library; it get's away with only using a [custom macro](https://github.com/codr4life/cl4l/blob/master/utils.lisp) for symbol generation.
 
 ```lisp
 (defmacro with-defer (name &body body)

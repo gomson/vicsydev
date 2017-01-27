@@ -15,7 +15,7 @@ Each test carries a unique set of tags in it's definition. When running tests, a
 (cl4l-test:run-suite '(:foo :bar) :skip '(:baz))
 ```
 
-### benchmarking
+### benchmarks
 Premature optimisation is the root of many problems, but so is not having any idea about the performance of your code. Unfortunately, I've found that most test frameworks don't even bother with benchmarks, and the ones that do require too much ceremony. There are no rational reasons for separating benchmarks and tests, the framework described here comes with the ability to run any set of tests as a benchmark with specified number of warmups and repetitions.
 
 ```lisp

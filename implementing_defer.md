@@ -5,7 +5,7 @@ posted Jan 27th 2017, 2:03 pm
 Golang's designers had good reasons to choose 'defer' as the one true mechanism for executing code on scope exit. The strategies for scoping resources (WITH-macros, exceptions and others) break down as soon as allocation and/or clean up depend on protected code. Implementing a comparable mechanism in other languages is perfectly doable, this post describes and compares implementations in C and Common Lisp that add the capability to defer to named/outer scopes.
 
 ### example
-
+C
 ```c
 bool called = false;
     
@@ -28,6 +28,7 @@ C4WITH_DEFER(outer) {
 assert(called);
 ```
 
+Lisp
 ```lisp
 (let ((called? nil))
   (with-defer nil
@@ -70,7 +71,7 @@ The C version depends on [dynamic arrays](https://github.com/codr4life/libc4life
 typedef void (c4defer_fnt)();
 ```
 
-While the lisp version is shorter and more independent thanks to more powerful macros and standard library; it get's away with only using a [custom macro](https://github.com/codr4life/cl4l/blob/master/utils.lisp) for symbol generation.
+While the Lisp version is shorter and more independent thanks to more powerful macros and standard library; it get's away with only using a [custom macro](https://github.com/codr4life/cl4l/blob/master/utils.lisp) for symbol generation.
 
 ```lisp
 (defmacro with-defer (name &body body)

@@ -2,7 +2,7 @@
 posted Jan 27th 2017, 06:07 am
 
 ### preramble
-I prefer my tests simple and flexible, designed around the application rather than imposed on it. The holy grail is a reusable library that allows the same progressive approach without getting in the way, while helping out with more elaborate tasks like test discovery, grouping and benchmarking. This post describes the humble beginnings of that library in Common Lisp.
+I prefer my tests simple and flexible, designed around the application rather than imposed on it. The holy grail is a reusable library that allows growing tests dynamically without getting in the way, while helping out with more elaborate tasks like test discovery, grouping and benchmarking. This post describes the humble beginnings of that library in Common Lisp.
 
 ### tags
 Each test carries a unique set of tags in it's definition. When running tests, a set of tags may be specified to only trigger tests matching all specified tags. An optional set of tags to skip may also be specified; tests matching any specified tags are skipped, which allows excluding non relevant tests within the triggered set. The approach relies on creativity with a touch of discipline when specifying tags; but the process is gradual and non-intrusive, Just add whatever tags needed to accomplish what needs to be done and to take advantage of any patterns that emerge. 

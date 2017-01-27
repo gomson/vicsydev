@@ -19,7 +19,7 @@
     library that allows the same progressive approach without
     getting in the way, while helping out with more elaborate tasks
     like test discovery, grouping and benchmarking. This post
-    describes the humble beginnings of that kind of library in
+    describes the humble beginnings of that library in
     Common Lisp.
     </para>
 
@@ -44,7 +44,7 @@
     <para>
       Premature optimisation is the root of many problems,
       but so is not having any idea about the performance of
-      the code. Unfortunately, I've found that most test
+      your code. Unfortunately, I've found that most test
       frameworks don't even bother with benchmarks, and the ones
       that do require too much ceremony. There are no rational
       reasons for separating benchmarks and tests, the framework
@@ -59,14 +59,12 @@
     
     <h3>fixtures</h3>
     <para>
-      Most test frameworks out there include some kind of fixture
-      support, often in the form of before/after functions.
       I prefer my fixtures to wrap around tests, to allow
       using block statements for allocating and releasing
       resources. Like tests, fixtures are uniquely identified
-      by a set of tags; fixtures matching any skipped tags will
-      not run.
-    </para><br/>
+      by a set of tags. When running tests, fixtures matching
+      skipped tags will not run.
+    </para><br/><br/>
     <script src="https://gist.github.com/codr4life/c1a4ba8160f897e304cfce4919565a59.js"></script>
     <br/>
 
@@ -77,27 +75,27 @@
       and own if you feel like tweaking it. Besides a few
       custom <a href="https://github.com/codr4life/cl4l/blob/master/utils.lisp">utilities</a>,
       it uses <a href="https://github.com/codr4life/cl4l#indexes">unique indexes</a>
-      for mapping tags to tests and fixtures in order. The
+      for mapping tags to tests and fixtures in order; the
       same thing could be accomplished with (gensym), (intern),
       built-in sets and manual sorting if you prefer more code
       in your code.
-    </para><br/>
-    
+    </para><br/><br/>
+    <script src="https://gist.github.com/codr4life/a7c73dd6b64a39ed6e3af3cf56b19ce7.js"></script>
     <br/>
 
     <h3>language agnostic</h3>
     <para>
       I've been playing around with this approach for 20 years now,
       and I have yet to find a language where it isn't doable
-      enough to improve on the status quo. 
-    </para>
+      enough to improve on the status quo.
+    </para><br/><br/><br/>
     
     <para>
       You may find more posts in the same spirit
       <a href="http://vicsydev.blogspot.de/">here</a>,
       and a full implementation of this
       framework and more <a href="https://github.com/codr4life/cl4l">here</a>.
-    </para>
+    </para><br/><br/>
     
     peace, out<br/>
   </body>

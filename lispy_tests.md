@@ -165,8 +165,7 @@ Included below is the complete implementation of all functionality described her
                   (retry-suite ()
                     (format t "SUITE~%")
                     (go retry-suite)))))))
-       (format t "~30a~5f~%"
-               "TOTAL"
+       (format t "TOTAL ~5f~%"
                (/ tot-time
                   internal-time-units-per-second)))))
 ```

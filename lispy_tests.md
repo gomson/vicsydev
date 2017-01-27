@@ -1,5 +1,6 @@
 # [vicsy/dev](https://github.com/codr4life/vicsydev) | lispy tests
-    
+posted Jan 27th, 2017 06:07 am
+
 ### preramble
 I prefer my tests simple and flexible, designed around the application rather than imposed on it. These days, I usually start with basic functions and assertions; and add what I need when I need it. The holy grail is a reusable library that allows the same progressive approach without getting in the way, while helping out with more elaborate tasks like test discovery, grouping and benchmarking. This post describes the humble beginnings of that library in Common Lisp.
 

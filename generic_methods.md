@@ -5,10 +5,10 @@ posted Jan 27th 2017, 6:01 pm
 Generic methods is a superior strategy for dealing with dynamic dispatch compared to common alternatives. Instance methods and interfaces both miss the point by not offering enough granularity and adding too much hierarchy, leading to brittle code that's painful to evolve. The approach is doable in any generically talented language with user defined types, but most commonly known from Common Lisp. 
 
 ### inheritance
-At first blush, generic methods may seem to offer only minor advantages over class inheritance; but inheriting single methods is a lot less complex than inheriting type hierarchies with multiple methods. There is nothing wrong polymorphism or dynamic dispatch as concepts; what causes all the pain is not separating concerns.
+At first blush, generic methods may seem to offer only minor advantages over class inheritance; but dealing with one method at a time is a lot less complex than inheriting type hierarchies with multiple methods. There is nothing wrong sub typing or dynamic dispatch as concepts; what causes all the pain is not separating concerns.
 
 ### monkey patching
-A popular approach in Ruby is to inject code into already defined classes, commonly known as Monkey Patching. The reason it's popular is that this kind of leverage is very useful; and the reason it causes so much pain is the same as above, it mixes up polymorphism with dynamic dispatch. One way to think of generic methods is as monkey patching done right, with controlled scope and granularity.
+A popular approach in Ruby is to inject code into already defined classes, commonly known as Monkey Patching. The reason it's popular is that this kind of leverage is very useful; and the reason it causes so much pain is the same as above, it mixes up sub typing with dynamic dispatch. One way to think of generic methods is as monkey patching done right, with controlled scope and granularity.
 
 ```lisp
 (defstruct (foo))

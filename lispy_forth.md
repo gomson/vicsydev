@@ -488,6 +488,8 @@ Lifoo>
 Stack tracing takes on a whole new meaning in Forth, Lifoo offers integrated tracing to help untangle messy stacks.
 
 ```
+CL-USER> (lifoo:lifoo-repl)
+
 Lifoo> trace
 NIL
 
@@ -495,20 +497,20 @@ Lifoo> 1 2 +
 3
 
 Lifoo> untrace
-WORD UNTRACE
-POP  3
-NIL
-PUSH 3
-(3)
-POP  1
-NIL
-POP  2
+PUSH 1
 (1)
 PUSH 2
 (2 1)
-PUSH 1
+CALL +
+POP  2
 (1)
-WORD +
+POP  1
+NIL
+PUSH 3
+(3)
+POP  3
+NIL
+CALL UNTRACE
 NIL
 
 Lifoo> 

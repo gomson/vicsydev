@@ -150,6 +150,9 @@ There's a saying in Forth circles; that if you've seen one Forth compiler, you'v
 
     ;; *** vars ***
 
+    (define-lisp-word :vars ()
+      (lifoo-push (vars *lifoo*)))
+
     (define-lisp-word :get ()
       (lifoo-push (lifoo-get (lifoo-pop))))
 
@@ -282,7 +285,10 @@ Lifoo comes with a macro called do-lifoo to make it easy to execute code inline;
 
 (define-test (:lifoo :vars)
   (assert (= 42 (do-lifoo ()
-                  :foo 42 set drop :foo get))))
+                  :foo 42 set drop :foo get)))
+  (assert (equal '((:bar . 7) (:foo . 42))
+                 (do-lifoo ()
+                   :foo 42 set :bar 7 set vars))))
 
 (define-test (:lifoo :printing)
   (assert (string= (format nil "hello lifoo!~%")

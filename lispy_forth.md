@@ -257,7 +257,7 @@ Lifoo comes with a macro called do-lifoo to make it easy to execute code inline;
 
 (define-test (:lifoo :branching)
   (assert (eq :ok (do-lifoo ()
-                    :ok (1 2 <) when)))
+                    :ok (2 1 <) when)))
   (assert (eq :ok (do-lifoo ()
                     :ok (1 2 =) unless))))
 
@@ -283,7 +283,7 @@ Lifoo comes with a macro called do-lifoo to make it easy to execute code inline;
                    (do-lifoo () "~a+~a=~a" (1 2 3) format))))
 
 (define-test (:lifoo :lists)
-  (assert (equal '(1 . 2) (do-lifoo ()
+  (assert (equal '(2 . 1) (do-lifoo ()
                             1 2 cons)))
   (assert (equal '(1 . 2) (do-lifoo ()
                             (1 . 2))))
@@ -304,7 +304,7 @@ Lifoo comes with a macro called do-lifoo to make it easy to execute code inline;
   (assert (equal '((:bar . 7) (:foo . 42))
                  (do-lifoo ()
                    :foo 42 set :bar 7 set vars)))
-  (assert (equal '(42 . nil)
+  (assert (equal '(nil . 42)
                  (do-lifoo ()
                    :foo dup 42 set drop dup rem swap get cons))))
 
@@ -332,8 +332,8 @@ Lifoo comes with a macro called do-lifoo to make it easy to execute code inline;
     `(with-lifoo (:exec (or ,exec *lifoo*))
        ,@(mapcar (lambda (op)
                    `(define-lisp-word ,(keyword! op) ()
-                      (let ((,_rhs (lifoo-pop))
-                            (,_lhs (lifoo-pop)))
+                      (let ((,_lhs (lifoo-pop))
+                            (,_rhs (lifoo-pop)))
                         (lifoo-push (,op ,_lhs ,_rhs)))))
                  ops))))
 

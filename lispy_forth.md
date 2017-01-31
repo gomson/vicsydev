@@ -406,8 +406,8 @@ NIL
 lifoo> 
 ```
 
-### stack tracing
-The stack tracing takes on a whole new meaning in Forth, Lifoo offers integrated stack traces to help untangle messy code.
+### tracing
+Stack tracing takes on a whole new meaning in Forth, Lifoo offers integrated tracing to help untangle messy stacks.
 
 ```
 lifoo> trace

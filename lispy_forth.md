@@ -399,41 +399,41 @@ A simple repl is provided for playing around freestyle.
 ```
 CL-USER> (lifoo:lifoo-repl)
 
-lifoo> "hello Lifoo!" print ln
+Lifoo> "hello Lifoo!" print ln
 hello Lifoo!
 NIL
 
-lifoo> 
+Lifoo> 
 ```
 
 ### tracing
 Stack tracing takes on a whole new meaning in Forth, Lifoo offers integrated tracing to help untangle messy stacks.
 
 ```
-lifoo> trace
+Lifoo> trace
 NIL
 
-lifoo> 1 2 +
+Lifoo> 1 2 +
 3
 
-lifoo> untrace
-WORD +
-PUSH 1
-(1)
-PUSH 2
-(2 1)
-POP  2
-(1)
-POP  1
+Lifoo> untrace
+WORD UNTRACE
+POP  3
 NIL
 PUSH 3
 (3)
-POP  3
+POP  1
 NIL
-WORD UNTRACE
+POP  2
+(1)
+PUSH 2
+(2 1)
+PUSH 1
+(1)
+WORD +
 NIL
 
-lifoo> 
+Lifoo> 
 ```
 
 You may find more in the same spirit [here](http://vicsydev.blogspot.de/) and [here](https://github.com/codr4life/vicsydev), and a full implementation of this idea and more [here](https://github.com/codr4life).

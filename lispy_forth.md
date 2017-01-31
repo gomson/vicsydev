@@ -1,4 +1,4 @@
-# [vicsy/dev](https://github.com/codr4life/vicsydev) | Lispy Forth
+# [vicsy/dev](https://github.com/codr4life/vicsydev) | a tiny, Lispy, embedded Forth
 posted Jan 30th 2017, 02:00 pm
 
 ### preramble

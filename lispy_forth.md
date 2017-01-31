@@ -11,7 +11,6 @@ If you have no idea what Forth is; a first step is to think of it as Reverse Pol
 There's a saying in Forth circles; that if you've seen one Forth compiler, you've seen one Forth compiler. Besides being based on stacks and words, Lifoo is very much Lisp in Forth clothes; to the point where it reuses the Lisp reader to read Lifoo code. Forth likes to call functions words, and Lifoo keeps with that tradition. Lifoo comes with a modest but growing, optional set of built in words as a foundation to build on. Words can be defined in either Lisp or Lifoo, the goal is to gradually migrate as much functionality as possible to pure Lifoo. Besides macros; functions for defining, looking up and un-defining words are also provided. 
 
 ```
-    ;; Define binary ops
     (define-lisp-ops () + - * / = /= < > cons)
     
 
@@ -123,17 +122,6 @@ There's a saying in Forth circles; that if you've seen one Forth compiler, you'v
       (let ((args (lifoo-pop))
             (fmt (lifoo-pop)))
         (lifoo-push (apply #'format nil fmt args))))
-
-
-    ;; *** printing ***
-
-    ;; Prints line ending
-    (define-lisp-word :ln ()
-      (terpri))
-
-    ;; Pops and prints $1
-    (define-lisp-word :print ()
-      (princ (lifoo-pop)))
     
 
     ;; *** branching ***
@@ -160,12 +148,35 @@ There's a saying in Forth circles; that if you've seen one Forth compiler, you'v
           (eval `(progn ,@body)))))
 
 
+    ;; *** variables ***
+
+    (define-lisp-word :get ()
+      (lifoo-push (lifoo-get (lifoo-pop))))
+
+    (define-lisp-word :set ()
+      (let ((val (lifoo-pop))
+            (var (lifoo-pop)))
+        (lifoo-set var val)
+        (lifoo-push val)))
+
+    
+    ;; *** printing ***
+
+    ;; Prints line ending
+    (define-lisp-word :ln ()
+      (terpri))
+
+    ;; Pops and prints $1
+    (define-lisp-word :print ()
+      (princ (lifoo-pop)))
+
+    
     ;; *** threads ***
 
     ;; Sleeps for $1 seconds
     (define-lisp-word :sleep ()
       (sleep (lifoo-pop)))
-
+    
 
     ;; *** tracing ***
     
@@ -269,6 +280,10 @@ Lifoo comes with a macro called do-lifoo to make it easy to execute code inline;
   (assert (equal '(2 4 6) (do-lifoo ()
                             (1 2 3) (2 *) map))))
 
+(define-test (:lifoo :variables)
+  (assert (= 42 (do-lifoo ()
+                  :foo 42 set drop :foo get))))
+
 (define-test (:lifoo :printing)
   (assert (string= (format nil "hello lifoo!~%")
                    (with-output-to-string (out)
@@ -318,6 +333,7 @@ Lifoo comes with a macro called do-lifoo to make it easy to execute code inline;
 (defstruct (lifoo-exec (:conc-name)
                        (:constructor make-lifoo))
   stack traces tracing?
+  variables
   (words (make-hash-table :test 'eq)))
 
 (defun lifoo-parse (expr &key (exec *lifoo*))
@@ -400,18 +416,34 @@ Lifoo comes with a macro called do-lifoo to make it easy to execute code inline;
       val)))
 
 (defun lifoo-stack (&key (exec *lifoo*))
+  "Returns current stack for EXEC"
   (stack exec))
 
 (defun lifoo-trace (&key (exec *lifoo*))
+  "Enables tracing for EXEC"
   (setf (tracing? exec) t)
   (setf (traces exec) nil))
 
 (defun lifoo-untrace (&key (exec *lifoo*))
+  "Disables tracing for EXEC"
   (setf (tracing? exec) nil)
   (traces exec))
 
 (defun lifoo-words (&key (exec *lifoo*))
+  "Returns EXEC words"
   (words exec))
+
+(defun lifoo-get (var &key (exec *lifoo*))
+  "Returns value of VAR in EXEC"
+  (rest (assoc var (variables exec)))) 
+
+(defun lifoo-set (var val &key (exec *lifoo*))
+  "Sets value of VAR in EXEC to VAL"
+  (let ((found? (assoc var (variables exec))))
+    (if found?
+        (rplacd found? val)
+        (setf (variables exec) (acons var val (variables exec)))))
+  val)
 ```
 
 ### repl

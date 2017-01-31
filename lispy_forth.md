@@ -413,21 +413,6 @@ Lifoo comes with a macro called do-lifoo to make it easy to execute code inline;
 
 (defun lifoo-words (&key (exec *lifoo*))
   (words exec))
-
-(defun lifoo-repl (&key (exec (lifoo-init :exec (make-lifoo)))
-                        (in *standard-input*)
-                        (prompt "lifoo>")
-                        (out *standard-output*))
-  (with-lifoo (:exec exec) 
-    (tagbody
-     start
-       (format out "~%~a " prompt)
-       (when-let (line (read-line in nil))
-         (unless (string= "" line)
-           (with-input-from-string (in line)
-             (lifoo-eval (lifoo-read :in in))
-             (format out "~a~%" (lifoo-pop)))
-           (go start))))))
 ```
 
 ### repl

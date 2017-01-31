@@ -1,4 +1,4 @@
-# [vicsy/dev](https://github.com/codr4life/vicsydev) | Lisp in Forth code
+# [vicsy/dev](https://github.com/codr4life/vicsydev) | Lifoo - a tiny, Lispy embedded language based on Forth
 posted Jan 30th 2017, 02:00 pm
 
 ### preramble

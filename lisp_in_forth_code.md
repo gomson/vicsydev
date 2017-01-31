@@ -18,61 +18,61 @@ Forth likes to call functions words, and Lifoo keeps with that tradition. Lifoo 
   (define-lisp-ops (exec) + - * / = /= < > cons)
 
   ;; Replaces $1 and $2 with result of comparing $2 to $1
-  (define-lisp-word cmp (exec)
+  (define-lisp-word :cmp (exec)
     (let ((rhs (lifoo-pop exec))
           (lhs (lifoo-pop exec)))
       (lifoo-push exec (compare lhs rhs))))
 
   ;; Derived comparison ops
-  (define-word eq? (exec) cmp 0 =)
-  (define-word neq? (exec) cmp 0 /=)
-  (define-word lt? (exec) cmp -1 =)
-  (define-word gt? (exec) cmp 1 =)
-  (define-word lte? (exec) cmp 1 <)
-  (define-word gte? (exec) cmp -1 >)
+  (define-word :eq? (exec) cmp 0 =)
+  (define-word :neq? (exec) cmp 0 /=)
+  (define-word :lt? (exec) cmp -1 =)
+  (define-word :gt? (exec) cmp 1 =)
+  (define-word :lte? (exec) cmp 1 <)
+  (define-word :gte? (exec) cmp -1 >)
 
   ;; Drops $1 from stack
-  (define-lisp-word drop (exec)
+  (define-lisp-word :drop (exec)
     (lifoo-pop exec))
 
   ;; Pushes $1 on stack
-  (define-lisp-word dup (exec)
+  (define-lisp-word :dup (exec)
     (lifoo-push exec (first (lifoo-stack exec))))
   
   ;; Replaces $1 with result of evaluating it
-  (define-lisp-word eval (exec)
+  (define-lisp-word :eval (exec)
     (lifoo-push exec
                 (lifoo-eval exec
                             (lifoo-pop exec))))
 
   ;; Replaces $1 with result of compiling it
-  (define-lisp-word compile (exec)
+  (define-lisp-word :compile (exec)
     (lifoo-push exec
                 (lifoo-compile exec
                                (lifoo-pop exec))))
 
   ;; Replaces $1 with first element of list
-  (define-lisp-word first (exec)
+  (define-lisp-word :first (exec)
     (lifoo-push exec (first (lifoo-pop exec))))
 
   ;; Replaces $1 (arguments) and $2 (format) with formatted output
-  (define-lisp-word format (exec)
+  (define-lisp-word :format (exec)
     (let ((args (lifoo-pop exec))
           (fmt (lifoo-pop exec)))
       (lifoo-push exec (apply #'format nil fmt args))))
 
   ;; Clears and pushes stack
-  (define-lisp-word list (exec)
+  (define-lisp-word :list (exec)
     (let ((lst (lifoo-stack exec)))
       (setf (lifoo-stack exec) nil)
       (lifoo-push exec (nreverse lst))))
 
   ;; Prints line ending
-  (define-lisp-word ln (exec)
+  (define-lisp-word :ln (exec)
     (terpri))
 
   ;; Replaces $1 and $2 with results of mapping $1 over $2
-  (define-lisp-word map (exec)
+  (define-lisp-word :map (exec)
     (let ((fn (lifoo-compile exec (lifoo-pop exec)))
           (lst (lifoo-pop exec)))
       (lifoo-push exec (mapcar (lambda (it)
@@ -82,39 +82,39 @@ Forth likes to call functions words, and Lifoo keeps with that tradition. Lifoo 
                                lst))))
 
   ;; Replaces $1 with T if NIL, otherwise NIL
-  (define-lisp-word nil? (exec)
+  (define-lisp-word :nil? (exec)
     (lifoo-push exec
                 (null (lifoo-eval exec
                                   (lifoo-pop exec)))))
 
   ;; Pops and prints $1
-  (define-lisp-word print (exec)
+  (define-lisp-word :print (exec)
     (princ (lifoo-pop exec)))
 
   ;; Replaces $1 with rest of list
-  (define-lisp-word rest (exec)
+  (define-lisp-word :rest (exec)
     (lifoo-push exec
                 (rest (lifoo-pop exec))))
 
   ;; Replaces $1 with string representation
-  (define-lisp-word string (exec)
+  (define-lisp-word :string (exec)
     (let ((val (lifoo-pop exec)))
       (lifoo-push exec (if (listp val)
                            (apply #'string! val)
                            (string! val)))))
 
   ;; Replaces $1 with results of converting it to a symbol
-  (define-lisp-word symbol (exec)
+  (define-lisp-word :symbol (exec)
     (lifoo-push exec (keyword! (lifoo-pop exec))))
   
   ;; Swaps $1 and $2
-  (define-lisp-word swap (exec)
+  (define-lisp-word :swap (exec)
     (push (lifoo-pop exec)
           (rest (lifoo-stack exec))))
 
-  ;; Replaces $1 and $2 with results of evaluating $2 if $1 is T,
+  ;; Replaces $1 and $2 with results of evaluating $2 if $1,
   ;; otherwise NIL
-  (define-lisp-word when (exec)
+  (define-lisp-word :when (exec)
     (let ((cnd (lifoo-pop exec))
           (res (lifoo-pop exec)))
       (lifoo-eval exec cnd)
@@ -122,10 +122,12 @@ Forth likes to call functions words, and Lifoo keeps with that tradition. Lifoo 
           (lifoo-eval exec res)
           (lifoo-push exec nil))))
 
-  (define-word unless (exec) nil? when)
+  ;; Replaces $1 and $2 with results of evaluating $2 if $1 is NIL,
+  ;; otherwise NIL
+  (define-word :unless (exec) nil? when)
 
   ;; Replaces $1 with the word it represents
-  (define-lisp-word word (exec)
+  (define-lisp-word :word (exec)
     (let ((fn (lifoo-word exec (lifoo-pop exec))))
       (lifoo-push exec fn)))
 ```

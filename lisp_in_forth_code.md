@@ -295,8 +295,8 @@ A simple repl is provided for playing around freestyle.
 ```lisp
 CL-USER> (lifoo:lifoo-repl)
 
-lifoo> "hello lifoo!" print ln
-hello lifoo!
+lifoo> "hello Lifoo!" print ln
+hello Lifoo!
 NIL
 
 lifoo> 

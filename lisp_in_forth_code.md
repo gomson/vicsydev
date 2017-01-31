@@ -8,7 +8,7 @@ I've been craving for a trivial, embedded scripting language that feels just rig
 If you have no idea what Forth is; a first step is to think of it as Reverse Polish Notation for code, the kind of code Yoda would write. Like Lisp, Forth is more idea than implementation; arguably even more so than Lisp because of it's simplicity. It's very popular in embedded circles, but outside of that bubble it's unfortunately largely forgotten these days.
 
 ### lifoo
-There's a saying in Forth circles; that if you've seen one Forth compiler, you've seen one Forth compiler. Besides being based on stacks and words, Lifoo is very much Lisp in Forth clothes; to the point where it reuses the Lisp reader to read Lifoo code and reuses conses, lists and keywords within the language. 
+There's a saying in Forth circles; that if you've seen one Forth compiler, you've seen one Forth compiler. Besides being based on stacks and words, Lifoo is very much Lisp in Forth clothes; to the point where it reuses the Lisp reader to read Lifoo code. 
 
 ### built-in words
 Forth likes to call functions words, and Lifoo keeps with that tradition. Lifoo comes with a modest but growing, optional set of built in words as a foundation to build on. Words can be defined in either Lisp or Lifoo, the goal is to gradually migrate as much functionality as possible to pure Lifoo. Besides macros; functions for defining, looking up and un-defining words are also provided. Like Lisp, Lifoo reserves =, < & > for numbers; but unlike Lisp it also offers more convenient generic comparisons based on [cl4l](https://github.com/codr4life/cl4l/blob/master/compare.lisp).

@@ -154,11 +154,11 @@ There's a saying in Forth circles; that if you've seen one Forth compiler, you'v
           (eval `(progn ,@body)))))
 
 
-    ;; *** vars ***
+    ;; *** env ***
 
-    ;; Pushes vars as alist
-    (define-lisp-word :vars ()
-      (lifoo-push (vars *lifoo*)))
+    ;; Pushes env as alist
+    (define-lisp-word :env ()
+      (lifoo-push (env *lifoo*)))
 
     ;; Pops $var and returns value
     (define-lisp-word :get ()
@@ -298,12 +298,12 @@ Lifoo comes with a macro called do-lifoo to make it easy to execute code inline;
   (assert (equal '(2 4 6) (do-lifoo ()
                             (1 2 3) (2 *) map))))
 
-(define-test (:lifoo :vars)
+(define-test (:lifoo :env)
   (assert (= 42 (do-lifoo ()
                   :foo 42 set drop :foo get)))
   (assert (equal '((:bar . 7) (:foo . 42))
                  (do-lifoo ()
-                   :foo 42 set :bar 7 set vars)))
+                   :foo 42 set :bar 7 set env)))
   (assert (equal '(nil . 42)
                  (do-lifoo ()
                    :foo dup 42 set drop dup rem swap get cons))))
@@ -357,7 +357,7 @@ Lifoo comes with a macro called do-lifoo to make it easy to execute code inline;
 (defstruct (lifoo-exec (:conc-name)
                        (:constructor make-lifoo))
   stack traces tracing?
-  vars
+  env
   (words (make-hash-table :test 'eq)))
 
 (defun lifoo-parse (expr &key (exec *lifoo*))
@@ -455,20 +455,20 @@ Lifoo comes with a macro called do-lifoo to make it easy to execute code inline;
 
 (defun lifoo-get (var &key (exec *lifoo*))
   "Returns value of VAR in EXEC"
-  (rest (assoc var (vars exec)))) 
+  (rest (assoc var (env exec)))) 
 
 (defun lifoo-set (var val &key (exec *lifoo*))
   "Sets value of VAR in EXEC to VAL"
-  (let ((found? (assoc var (vars exec))))
+  (let ((found? (assoc var (env exec))))
     (if found?
         (rplacd found? val)
-        (setf (vars exec) (acons var val (vars exec)))))
+        (setf (env exec) (acons var val (env exec)))))
   val)
   
 (defun lifoo-rem (var &key (exec *lifoo*))
   "Returns value of VAR in EXEC"
-  (setf (vars exec)
-        (delete var (vars exec) :key #'first :test #'eq)))   
+  (setf (env exec)
+        (delete var (env exec) :key #'first :test #'eq)))   
 ```
 
 ### repl

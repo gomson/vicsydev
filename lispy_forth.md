@@ -148,7 +148,7 @@ There's a saying in Forth circles; that if you've seen one Forth compiler, you'v
           (eval `(progn ,@body)))))
 
 
-    ;; *** variables ***
+    ;; *** vars ***
 
     (define-lisp-word :get ()
       (lifoo-push (lifoo-get (lifoo-pop))))
@@ -280,7 +280,7 @@ Lifoo comes with a macro called do-lifoo to make it easy to execute code inline;
   (assert (equal '(2 4 6) (do-lifoo ()
                             (1 2 3) (2 *) map))))
 
-(define-test (:lifoo :variables)
+(define-test (:lifoo :vars)
   (assert (= 42 (do-lifoo ()
                   :foo 42 set drop :foo get))))
 
@@ -333,7 +333,7 @@ Lifoo comes with a macro called do-lifoo to make it easy to execute code inline;
 (defstruct (lifoo-exec (:conc-name)
                        (:constructor make-lifoo))
   stack traces tracing?
-  variables
+  vars
   (words (make-hash-table :test 'eq)))
 
 (defun lifoo-parse (expr &key (exec *lifoo*))
@@ -435,14 +435,14 @@ Lifoo comes with a macro called do-lifoo to make it easy to execute code inline;
 
 (defun lifoo-get (var &key (exec *lifoo*))
   "Returns value of VAR in EXEC"
-  (rest (assoc var (variables exec)))) 
+  (rest (assoc var (vars exec)))) 
 
 (defun lifoo-set (var val &key (exec *lifoo*))
   "Sets value of VAR in EXEC to VAL"
-  (let ((found? (assoc var (variables exec))))
+  (let ((found? (assoc var (vars exec))))
     (if found?
         (rplacd found? val)
-        (setf (variables exec) (acons var val (variables exec)))))
+        (setf (vars exec) (acons var val (vars exec)))))
   val)
 ```
 

@@ -158,6 +158,7 @@ There's a saying in Forth circles; that if you've seen one Forth compiler, you'v
       join-thread cons)))
 ```
 
+### words
 Forth likes to call functions words, and Lifoo keeps with that tradition. Lifoo comes with a modest but growing, modular set of built-in words. Words can be defined in either Lisp or Lifoo, and the goal is to gradually migrate as much functionality as possible to pure Lifoo. Besides macros; functions for defining, looking up and un-defining words are also provided. 
 
 ```

@@ -570,7 +570,12 @@ Lifoo comes with a macro called do-lifoo to make it easy to execute code inline;
   "Returns value of VAR in EXEC"
   (setf *lifoo-env*
         (delete var *lifoo-env* :key #'first :test #'eq))) 
+```
 
+### repl
+Building a basic REPL from provided functionality is trivial.
+
+```
 (defun lifoo-repl (&key (exec (lifoo-init :exec (make-lifoo)))
                         (in *standard-input*)
                         (prompt "Lifoo>")
@@ -587,12 +592,7 @@ Lifoo comes with a macro called do-lifoo to make it easy to execute code inline;
                (lifoo-eval (lifoo-read :in in) :copy-env? nil)
                (format out "~a~%" (lifoo-pop)))
              (go start)))))))
-```
 
-### repl
-A simple repl is provided for playing around freestyle.
-
-```
 CL-USER> (lifoo:lifoo-repl)
 
 Lifoo> "hello Lifoo!" print ln

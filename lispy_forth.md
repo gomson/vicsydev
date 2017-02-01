@@ -573,7 +573,7 @@ Lifoo comes with a macro called do-lifoo to make it easy to execute code inline;
 ```
 
 ### repl
-Building a basic REPL from provided functionality is trivial.
+Building a basic REPL is trivial given above implementation.
 
 ```
 (defun lifoo-repl (&key (exec (lifoo-init :exec (make-lifoo)))

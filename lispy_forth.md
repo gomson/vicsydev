@@ -8,7 +8,157 @@ I've been craving for a trivial, embedded scripting language that feels just rig
 If you have no idea what Forth is; a first step is to think of it as Reverse Polish Notation for code, the kind of code Yoda would write. Like Lisp, Forth is more idea than implementation; arguably even more so than Lisp because of it's simplicity. While widely popular in embedded hardware circles, it's unfortunately mostly forgotten outside of that niche. Unfortunate because it's one of the most trivial languages to implement, and a solid foundation for embedded and/or domain specific languages. 
 
 ### lifoo
-There's a saying in Forth circles; that if you've seen one Forth compiler, you've seen one Forth compiler. Besides being based on stacks and words, Lifoo is very much Lisp in Forth clothes; to the point where it reuses the Lisp reader to read Lifoo code. Forth likes to call functions words, and Lifoo keeps with that tradition. Lifoo comes with a modest but growing, modular set of built-in words. Words can be defined in either Lisp or Lifoo, and the goal is to gradually migrate as much functionality as possible to pure Lifoo. Besides macros; functions for defining, looking up and un-defining words are also provided. 
+There's a saying in Forth circles; that if you've seen one Forth compiler, you've seen one Forth compiler. Besides being based on stacks and words, Lifoo is very much Lisp in Forth clothes; to the point where it reuses the Lisp reader to read Lifoo code. Lifoo comes with a macro called do-lifoo to simplify executing code inline; separate functions for parsing, evaluating and compiling expressions are also provided.
+
+```
+(defmacro lifoo-assert (res &body body)
+  "Asserts that evaluating BODY pushes value equal to RES 
+   according to COMPARE"
+  `(assert (zerop (compare ,res (do-lifoo () ,@body)))))
+
+(define-test (:lifoo :meta)
+  (with-lifoo ()
+    (lifoo-assert t
+      nil nil?)
+
+    (lifoo-assert :lifoo
+      "lifoo" symbol)
+
+    (lifoo-assert 3
+      1 2 "+" word eval)
+    
+    (lifoo-assert '(1 2 +)
+      (1 2 +))
+    
+    (lifoo-assert 3
+      (1 2 +) eval)
+
+    (lifoo-assert 3
+      (1 2 +) compile eval)
+    
+    (lifoo-assert 42
+      42 (lifoo-pop) lisp eval)
+    
+    (assert (eq
+             :failed
+             (handler-case (do-lifoo ()
+                             :any-message error)    
+               (lifoo-error (e)
+                 (assert (eq :any-message (lifoo-error e)))
+                 :failed))))
+
+    (assert (eq
+             :failed
+             (handler-case (do-lifoo ()
+                             (1 2 =) assert)    
+               (lifoo-assert () :failed))))))
+
+(define-test (:lifoo :stack)
+  (with-lifoo ()
+    (lifoo-assert '(3 2 1)
+      1 2 3 stack)
+
+    ;; Make sure that stack is left intact
+    (assert (equal '(3 2 1) (lifoo-stack)))
+    
+    (lifoo-assert 1
+      1 dup drop)
+    
+    (lifoo-assert 2
+      1 2 swap drop)))
+
+(define-test (:lifoo :flow)
+  (with-lifoo ()
+    (lifoo-assert :ok
+      :ok (2 1 <) when)
+    
+    (lifoo-assert :ok
+      :ok (1 2 =) unless)
+    
+    (lifoo-assert 3
+      0 (inc dup 3 >) while drop)
+    
+    (lifoo-assert '(2 1 0)
+      list (push) 3 times)))
+
+(define-test (:lifoo :strings)
+  (with-lifoo ()
+    (lifoo-assert "123ABC"
+      (1 2 3 abc) string)
+    
+    (lifoo-assert "1+2=3"
+      "~a+~a=~a" (1 2 3) format)))
+
+(define-test (:lifoo :lists)
+  (with-lifoo ()
+    (lifoo-assert '(2 . 1)
+      1 2 cons)
+    
+    (lifoo-assert '(1 . 2)
+      (1 . 2))
+    
+    (lifoo-assert '(1 2 3)
+      1 2 3 list)
+    
+    (lifoo-assert 2
+      (1 2 3) rest first)
+    
+    (lifoo-assert 2
+      (1 2 3) pop drop pop)
+    
+    (lifoo-assert '(1 2 3)
+      (1) 2 push 3 push reverse)
+    
+    (lifoo-assert '(2 4 6)
+      (1 2 3) (2 *) map)))
+
+(define-test (:lifoo :comparisons)
+  (with-lifoo ()
+    (lifoo-assert t
+      "abc" "abc" eq?)
+    
+    (lifoo-assert nil
+      "abc" "abcd" eq?)
+    
+    (lifoo-assert t
+      "abc" "abcd" neq?)
+    
+    (lifoo-assert t
+      "abc" "def" lt?)
+    
+    (lifoo-assert nil
+      "abc" "def" gt?)))
+
+(define-test (:lifoo :env)
+  (with-lifoo ()
+    (lifoo-assert 42
+      :foo 42 set drop :foo get)
+    
+    (lifoo-assert '((:bar . 7) (:foo . 42))
+      :foo 42 set :bar 7 set env)
+    
+    (lifoo-assert '(nil . 42)
+      :foo dup 42 set drop dup rem swap get cons)))
+
+(define-test (:lifoo :io)
+  (assert (string= (format nil "hello lifoo!~%")
+                   (with-output-to-string (out)
+                     (let ((*standard-output* out))
+                       (do-lifoo ()
+                         "hello lifoo!" print ln))))))
+
+(define-test (:lifoo :threads)
+  (with-lifoo ()
+    (lifoo-assert 42
+      1 chan 42 chan-put chan-get)
+    
+    (lifoo-assert '(:done . 3)
+      0 chan (1 2 + chan-put :done) thread swap 
+      chan-get swap drop swap 
+      join-thread cons)))
+```
+
+Forth likes to call functions words, and Lifoo keeps with that tradition. Lifoo comes with a modest but growing, modular set of built-in words. Words can be defined in either Lisp or Lifoo, and the goal is to gradually migrate as much functionality as possible to pure Lifoo. Besides macros; functions for defining, looking up and un-defining words are also provided. 
 
 ```
 (defmacro define-lifoo-init (name &body body)
@@ -266,157 +416,6 @@ There's a saying in Forth circles; that if you've seen one Forth compiler, you'v
   (define-lisp-word :chan-get ()
     (let ((msg (chan-get (first (stack *lifoo*)))))
       (lifoo-push msg))))
-```
-
-### use
-Lifoo comes with a macro called do-lifoo to make it easy to execute code inline; separate functions for parsing, evaluating and compiling expressions are also provided.
-
-```
-(defmacro lifoo-assert (res &body body)
-  "Asserts that evaluating BODY pushes value equal to RES 
-   according to COMPARE"
-  `(assert (zerop (compare ,res (do-lifoo () ,@body)))))
-
-(define-test (:lifoo :meta)
-  (with-lifoo ()
-    (lifoo-assert t
-      nil nil?)
-
-    (lifoo-assert :lifoo
-      "lifoo" symbol)
-
-    (lifoo-assert 3
-      1 2 "+" word eval)
-    
-    (lifoo-assert '(1 2 +)
-      (1 2 +))
-    
-    (lifoo-assert 3
-      (1 2 +) eval)
-
-    (lifoo-assert 3
-      (1 2 +) compile eval)
-    
-    (lifoo-assert 42
-      42 (lifoo-pop) lisp eval)
-    
-    (assert (eq
-             :failed
-             (handler-case (do-lifoo ()
-                             :any-message error)    
-               (lifoo-error (e)
-                 (assert (eq :any-message (lifoo-error e)))
-                 :failed))))
-
-    (assert (eq
-             :failed
-             (handler-case (do-lifoo ()
-                             (1 2 =) assert)    
-               (lifoo-assert () :failed))))))
-
-(define-test (:lifoo :stack)
-  (with-lifoo ()
-    (lifoo-assert '(3 2 1)
-      1 2 3 stack)
-
-    ;; Make sure that stack is left intact
-    (assert (equal '(3 2 1) (lifoo-stack)))
-    
-    (lifoo-assert 1
-      1 dup drop)
-    
-    (lifoo-assert 2
-      1 2 swap drop)))
-
-(define-test (:lifoo :flow)
-  (with-lifoo ()
-    (lifoo-assert :ok
-      :ok (2 1 <) when)
-    
-    (lifoo-assert :ok
-      :ok (1 2 =) unless)
-    
-    (lifoo-assert 3
-      0 (inc dup 3 >) while drop)
-    
-    (lifoo-assert '(2 1 0)
-      list (push) 3 times)))
-
-(define-test (:lifoo :strings)
-  (with-lifoo ()
-    (lifoo-assert "123ABC"
-      (1 2 3 abc) string)
-    
-    (lifoo-assert "1+2=3"
-      "~a+~a=~a" (1 2 3) format)))
-
-(define-test (:lifoo :lists)
-  (with-lifoo ()
-    (lifoo-assert '(2 . 1)
-      1 2 cons)
-    
-    (lifoo-assert '(1 . 2)
-      (1 . 2))
-    
-    (lifoo-assert '(1 2 3)
-      1 2 3 list)
-    
-    (lifoo-assert 2
-      (1 2 3) rest first)
-    
-    (lifoo-assert 2
-      (1 2 3) pop drop pop)
-    
-    (lifoo-assert '(1 2 3)
-      (1) 2 push 3 push reverse)
-    
-    (lifoo-assert '(2 4 6)
-      (1 2 3) (2 *) map)))
-
-(define-test (:lifoo :comparisons)
-  (with-lifoo ()
-    (lifoo-assert t
-      "abc" "abc" eq?)
-    
-    (lifoo-assert nil
-      "abc" "abcd" eq?)
-    
-    (lifoo-assert t
-      "abc" "abcd" neq?)
-    
-    (lifoo-assert t
-      "abc" "def" lt?)
-    
-    (lifoo-assert nil
-      "abc" "def" gt?)))
-
-(define-test (:lifoo :env)
-  (with-lifoo ()
-    (lifoo-assert 42
-      :foo 42 set drop :foo get)
-    
-    (lifoo-assert '((:bar . 7) (:foo . 42))
-      :foo 42 set :bar 7 set env)
-    
-    (lifoo-assert '(nil . 42)
-      :foo dup 42 set drop dup rem swap get cons)))
-
-(define-test (:lifoo :io)
-  (assert (string= (format nil "hello lifoo!~%")
-                   (with-output-to-string (out)
-                     (let ((*standard-output* out))
-                       (do-lifoo ()
-                         "hello lifoo!" print ln))))))
-
-(define-test (:lifoo :threads)
-  (with-lifoo ()
-    (lifoo-assert 42
-      1 chan 42 chan-put chan-get)
-    
-    (lifoo-assert '(:done . 3)
-      0 chan (1 2 + chan-put :done) thread swap 
-      chan-get swap drop swap 
-      join-thread cons)))
 ```
 
 ### implementation

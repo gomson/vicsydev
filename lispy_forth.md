@@ -21,7 +21,7 @@ There's a saying in Forth circles; that if you've seen one Forth compiler, you'v
   :string init
   "lifoo" upper)
 
-;; Loads all words from all modules
+;; Loads words from all modules
 (lifoo-init t)
 
 ;; Returns :true if 1 = 1

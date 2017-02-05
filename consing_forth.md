@@ -2,7 +2,7 @@
 posted Feb 5th 2017, 02:00 pm
 
 ### preramble
-In a previous [post](https://github.com/codr4life/vicsydev/blob/master/lispy_forth.md), I presented the humble beginnings of a Lispy, Forth like language implemented in Common Lisp. This post goes further into specific features and the reasoning behind them. I decided from the start that this was going to be a fresh take on Forth, in the spirit of Lisp; taking nothing for granted; and I ran into plenty of interesting design choices as a result.
+In a previous [post](https://github.com/codr4life/vicsydev/blob/master/lispy_forth.md), I presented the humble beginnings of a Lispy, Forth-like language implemented in Common Lisp. This post goes further into specific features and the reasoning behind them. I decided from the start that this was going to be a fresh take on Forth, in the spirit of Lisp; taking nothing for granted; and I ran into plenty of interesting design choices as a result.
 
 ### repl
 If you wan't to play along with the examples, a basic REPL may be started by cloning the [repository](https://github.com/codr4life/lifoo), followed by loading and evaluating ```(lifoo:lifoo-repl)```.
@@ -25,7 +25,7 @@ NIL
 One of the goals set early on in the design process was to reuse the Lisp reader as is for reading Lifoo code. Looking back, sticking with this choice throughout hard times was fundamental to achieving a seamless integration since it acted as a natural obstacle to deviating from Lisp in other ways.
 
 ### quoting
-Lifoo treats all list literals as quoted. When evaluating a list literal, the parser treats items as code tokens. The price for convenience is not being able to evaluate items in list literals without mapping eval or building from scratch, and delayed parsing of code blocks; but the approach fits like a glove with the simplicity of Forth while playing nice with Lisp.
+Lifoo treats all list literals as quoted. When evaluating a list literal, the parser treats items as code tokens. The price for convenience is not being able to evaluate items in list literals without mapping eval or building from scratch, but the approach fits like a glove with the simplicity of Forth and plays nice with Lisp.
 
 ```
 Lifoo> (1 2 3)
@@ -104,7 +104,7 @@ Lifoo> clear :bar var 42 set env
 ```
 
 ### del
-One thing Python got right (after missing the ```setf``` train) was providing an extendable protocol for deletion. Separating concerns into pieces of generic functionality like this is what enables exponential power gains. Lifoo provides a DEL word that works like ```set``` but deletes places instead.
+One thing Python got right (despite missing the ```setf``` train) was providing an extendable protocol for deletion. Separating concerns into pieces of generic functionality like this is what enables exponential power gains. Lifoo provides a ```del``` word that works like ```set``` but deletes places instead.
 
 ```
 Lifoo> (1 2 3) 1 nth del drop

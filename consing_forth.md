@@ -230,7 +230,7 @@ Lifoo> :up throw
 ```
 
 ### multi-threading
-All Lifoo code runs in a ```lifoo-exec``` object, the result of accessing a ```lifoo-exec``` from multiple threads at the same time is undefined. Spawning new threads clones the current exec and [channels](http://vicsydev.blogspot.de/2017/01/channels-in-common-lisp.html) are used for communicating between threads.
+All Lifoo code runs in a ```lifoo-exec``` object, the result of accessing a ```lifoo-exec``` from multiple threads at the same time is undefined. Spawning new threads clones the current exec and [channels](http://vicsydev.blogspot.de/2017/01/channels-in-common-lisp.html) are used for communication.
 
 ```
 Lifoo> 1 chan 42 send recv

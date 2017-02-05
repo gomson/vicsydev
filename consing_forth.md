@@ -1,11 +1,11 @@
-# [vicsy/dev](https://github.com/codr4life/vicsydev) | Consing Forth
+# [vicsy/dev](https://github.com/codr4life/vicsydev) | consing Forth
 posted Feb 5th 2017, 02:00 pm
 
 ### preramble
 In a previous [post](https://github.com/codr4life/vicsydev/blob/master/lispy_forth.md), I presented the humble beginnings of a Lispy, Forth like language implemented in Common Lisp. This post goes further into specific features and the reasoning behind them. I decided from the start that this was going to be a fresh take on Forth, in the spirit of Lisp; taking nothing for granted; and I ran into plenty of interesting design choices as a result.
 
 ### repl
-If you wan't to play along with the examples, a basic repl may be started by cloning the [repository](https://github.com/codr4life/lifoo), loading and evaluating ```(lifoo:lifoo-repl)```.
+If you wan't to play along with the examples, a basic repl may be started by cloning the [repository](https://github.com/codr4life/lifoo), followed by loading and evaluating ```(lifoo:lifoo-repl)```.
 
 ```
 Welcome to Lifoo,
@@ -21,11 +21,11 @@ Lifoo> exit
 NIL
 ```
 
-### reading
-One of the goals I set from the start was to reuse the Lisp reader as is to read Lifoo code. Looking back, clinging to this choice was fundamental to achieving a seamless integration since it acted as a natural obstacle to deviating from Lisp in other ways.
+### reader
+One of the goals I set from the start was to reuse the Lisp reader as is to read Lifoo code. Looking back, sticking with this choice throughout hard times was fundamental to achieving a seamless integration since it acted as a natural obstacle to deviating from Lisp in other ways.
 
 ### quoting
-Lifoo treats all list literals as quoted, when evaluating a list literal, the parser treats items as code tokens. The price for convenience is not being able to evaluate items in list literals without mapping eval or building from scratch, and delayed parsing of code blocks; but the approach fits like a glove with the simplicity of Forth while playing nice with Lisp.
+Lifoo treats all list literals as quoted. When evaluating a list literal, the parser treats items as code tokens. The price for convenience is not being able to evaluate items in list literals without mapping eval or building from scratch, and delayed parsing of code blocks; but the approach fits like a glove with the simplicity of Forth while playing nice with Lisp.
 
 ```
 Lifoo> (1 2 3)
@@ -42,7 +42,7 @@ Lifoo> ((1 2 +) (3 4 +) (5 6 +)) (eval) map
 ```
 
 ### symbols
-Since Forth doesn't use a special call syntax; symbols in the token stream are interpreted as words, or functions. However, all is not lost; Common Lisp offers another kind of symbols in the form of keywords. In Lifoo; regular symbols are evaluated as words, while keywords are treated as symbols.
+Since Forth doesn't use a special call syntax; symbols in the token stream are interpreted as words, functions calls. Luckily, Common Lisp offers another kind of symbols in the form of keywords. In Lifoo; regular symbols are evaluated as words, while keywords are treated as symbols.
 
 ```
 Lifoo> "lifoo" symbol
@@ -76,7 +76,7 @@ Lifoo> '(1 2 3) '(1 2 3 4) cmp
 ```
 
 ### definitions
-I decided to deviate from the traditional Forth syntax for defining words, a decision driven by the choice of reader. Rather than switching to prefix notation for definitions, Lifoo provides a ```define``` word that defines preceding code and symbol as a word.
+I decided to deviate from the traditional Forth syntax for defining words, a decision driven by the choice of reader. Lifoo provides a ```define``` word that defines preceding code and symbol as a word. ```define``` can be called anywhere; it overwrites any previous definitions, and makes the specified one available for immediate use.
 
 ```
 Lifoo> (drop drop 42) :+ define
@@ -120,7 +120,7 @@ Lifoo> "abc" 1 nth del drop
 A programming language doesn't get far without the ability to define new types from within the language. Lifoo provides a simple but effective interface to defstruct. Outside of Lifoo the struct is anonymous to not clash with existing Lisp definitions. Words are automatically generated for ```make-foo```, ```foo-p``` and fields with setters when the ```struct``` word is evaluated.
 
 ```
-Lifoo> :foo ((bar -1) baz) struct
+Lifoo> ((bar -1) baz) :foo struct
        nil make-foo foo?
 
 T
@@ -192,7 +192,7 @@ Once token streams come on silver plates for free, the macro implementation pict
 ```
 
 ### throw, catch & always
-One feature that was waiting for macros to arrive was throwing and catching. ```catch``` is implemented as a macro that wraps the entire token stream in a ```handler-case```, and ```throw``` signals a condition. If a thrown value isn't caught, an error is reported.
+One of the features that was waiting for macros to arrive was throwing and catching. ```catch``` is implemented as a macro that wraps the entire token stream in a ```handler-case```, and ```throw``` signals a condition. If a thrown value isn't caught, an error is reported.
 
 ```
 Lifoo> :frisbee throw
@@ -274,6 +274,6 @@ TOTAL                         2.688
 NIL
 ```
 
-You may find more in the same spirit [here](http://vicsydev.blogspot.de/) and [here](https://github.com/codr4life/vicsydev), and a full implementation of this idea and more [here](https://github.com/codr4life).
+There is much more to say, but this post needs to end somewhere. You may find more in the same spirit [here](http://vicsydev.blogspot.de/) and [here](https://github.com/codr4life/vicsydev), and a full implementation of this idea and more [here](https://github.com/codr4life).
 
 peace, out

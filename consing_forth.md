@@ -200,13 +200,13 @@ Lifoo> :frisbee throw
        (:always) always
        (drop) catch
 
-ALWAYS
+:ALWAYS
 
 Lifoo> :up throw
        "skipped" print ln
        (:caught cons) catch
 
-(CAUGHT . UP)
+(:CAUGHT . :UP)
 
 
 ;; Pops $value and throws it 
@@ -246,7 +246,7 @@ Lifoo> 0 chan (1 2 + send :done) 1 spawn swap
        recv swap drop swap 
        wait cons
 
-(DONE . 3)
+(:DONE . 3)
 
 ```
 

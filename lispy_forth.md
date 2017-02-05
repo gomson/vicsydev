@@ -36,6 +36,10 @@ Lifoo> "abc" 1 nth del drop
 
 "ac"
 
+Lifoo> "~a+~a=~a" (1 2 3) format
+
+"1+2=3"
+
 Lifoo> ((bar -1) baz) :foo struct
        nil make-foo foo?
 
@@ -77,8 +81,165 @@ Forth likes to call functions words, and Lifoo keeps with that tradition. Lifoo 
 ```
 
 ### implementation
+The following definitions have been hand-picked for their illustrative value, the full implementation of Lifoo currently weighs in at around 400 lines excluding word definitions.
 
 ```
+(defmacro define-macro-word (name (in &key exec)
+                             &body body)
+  "Defines new macro word NAME in EXEC from Lisp forms in BODY"
+  `(lifoo-define-macro (keyword! ',name)
+                       (lambda (,in)
+                         ,@body)
+                       :exec (or ,exec *lifoo*)))
+
+(defmacro define-lisp-word (id (&key exec) &body body)
+  "Defines new word with NAME in EXEC from Lisp forms in BODY"
+  `(lifoo-define ,id
+                 (make-lifoo-word :id ,id
+                                  :source ',body
+                                  :fn (lambda () ,@body))
+                 :exec (or ,exec *lifoo*)))
+
+(defmacro define-word (name (&key exec) &body body)
+  "Defines new word with NAME in EXEC from BODY"
+  `(lifoo-define ',name
+                 (make-lifoo-word :id ,(keyword! name)
+                                  :source ',body)
+                 :exec (or ,exec *lifoo*)))
+
+(defmacro do-lifoo ((&key (env t) exec) &body body)
+  "Runs BODY in EXEC"
+  `(with-lifoo (:exec (or ,exec *lifoo* (make-lifoo))
+                :env ,env)
+     (lifoo-eval ',body)
+     (lifoo-pop)))
+
+(defstruct (lifoo-word (:conc-name))
+  id
+  trace?
+  source fn)
+
+(defstruct (lifoo-cell (:conc-name lifoo-))
+  val set del)
+
+(defstruct (lifoo-exec (:conc-name)
+                       (:constructor make-lifoo))
+  envs logs
+  (stack (make-array 3 :adjustable t :fill-pointer 0))
+  (macro-words (make-hash-table :test 'eq))
+  (words (make-hash-table :test 'eq)))
+
+(defun lifoo-read (&key (in *standard-input*))
+  "Reads Lifoo code from IN until end of file"
+  (let ((eof? (gensym)) (more?) (expr))
+    (do-while ((not (eq (setf more? (read in nil eof?)) eof?)))
+      (push more? expr))
+    (nreverse expr)))
+
+(defun lifoo-parse (expr &key (exec *lifoo*))
+  "Parses EXPR and returns code for EXEC"
+  (labels
+      ((parse (fs acc)
+         (if fs
+             (let ((f (first fs)))
+               (parse
+                (rest fs)
+                (cond
+                  ((simple-vector-p f)
+                   (let ((len (length f)))
+                     (cons (cons f `(lifoo-push
+                                     ,(make-array
+                                       len
+                                       :adjustable t
+                                       :fill-pointer len
+                                       :initial-contents f)))
+                           acc)))
+                  ((consp f)
+                   (if (consp (rest f))
+                       (cons (cons f `(lifoo-push ',(copy-list f)))
+                             acc)
+                       (cons (cons f `(lifoo-push
+                                       ',(cons (first f)
+                                               (rest f))))
+                             acc)))
+                  ((null f)
+                   (cons (cons f `(lifoo-push nil)) acc))
+                  ((eq f t)
+                   (cons (cons f `(lifoo-push t)) acc))
+                  ((and (symbolp f) (not (keywordp f)))
+                   (let* ((id (keyword! f))
+                          (mw (lifoo-macro-word id)))
+                     (if mw
+                         (funcall mw acc)
+                         (cons (cons f `(lifoo-call ,id)) acc))))
+                  ((lifoo-word-p f)
+                   (cons (cons f `(lifoo-call ,f)) acc))
+                  (t
+                   (cons (cons f `(lifoo-push ,f)) acc)))))
+             (mapcar #'rest (nreverse acc)))))
+    (with-lifoo (:exec exec)
+      (parse (list! expr) nil))))
+      
+(defun lifoo-eval (expr &key (exec *lifoo*))
+  "Returns result of parsing and evaluating EXPR in EXEC"
+  (with-lifoo (:exec exec)
+    (handler-case
+        (eval `(progn ,@(lifoo-parse expr)))
+      (lifoo-throw (c)
+        (lifoo-error "thrown value not caught: ~a" (value c))))))
+
+(defun lifoo-compile (word &key (exec *lifoo*))
+  "Returns compiled function for WORD"
+  (or (fn word)
+      (setf (fn word)
+            (eval `(lambda ()
+                     ,@(lifoo-parse (source word) :exec exec))))))
+
+(defun lifoo-call (word &key (exec *lifoo*))
+  "Calls WORD in EXEC"
+
+  (unless (lifoo-word-p word)
+    (let ((id word))
+      (unless (setf word (lifoo-word id))
+        (error "missing word: ~a" id)))) 
+
+  (when (trace? word)
+    (push (list :enter (id word) (clone (stack exec)))
+          (logs exec)))
+
+  (with-lifoo (:exec exec)
+    (handler-case
+        (progn 
+          (funcall (lifoo-compile word))
+
+          (when (trace? word)
+            (push (list :exit (id word) (clone (stack exec)))
+                  (logs exec))))
+      (lifoo-break ()
+        (when (trace? word)
+          (push (list :break (id word) (clone (stack exec)))
+                (logs exec)))))))
+
+(defun lifoo-push-cell (cell &key (exec *lifoo*))
+  "Pushes CELL onto EXEC stack"  
+  (vector-push-extend cell (stack exec))
+  cell)
+
+(defun lifoo-push (val &key (exec *lifoo*) set del)
+  "Pushes VAL onto EXEC stack"  
+  (lifoo-push-cell (make-lifoo-cell :val val :set set :del del)
+                   :exec exec)
+  val)
+
+(defun lifoo-pop-cell (&key (exec *lifoo*))
+  "Pops cell from EXEC stack"
+  (unless (zerop (fill-pointer (stack exec)))
+    (vector-pop (stack exec))))
+
+(defun lifoo-pop (&key (exec *lifoo*))
+  "Pops value from EXEC stack"
+  (unless (zerop (fill-pointer (stack exec)))
+    (lifoo-val (lifoo-pop-cell :exec exec))))
 ```
 
 ### repl

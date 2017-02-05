@@ -192,7 +192,7 @@ Once token streams come on silver plates for free, the macro implementation pict
 ```
 
 ### throw, catch & always
-One of the features that was waiting for macros to arrive was throwing and catching. ```catch``` is implemented as a macro that wraps the entire token stream in a ```handler-case```, and ```throw``` signals a condition. If a thrown value isn't caught, an error is reported.
+One of the features that was waiting for macros to arrive was throwing and catching. ```always``` is implemented as a macro that wraps the entire token stream in ```unwind-protect```, catch pulls the same trick with ```handler-case```, and ```throw``` signals a condition. If a thrown value isn't caught, an error is reported.
 
 ```
 Lifoo> :frisbee throw

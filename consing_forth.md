@@ -5,7 +5,7 @@ posted Feb 5th 2017, 02:00 pm
 In a previous [post](https://github.com/codr4life/vicsydev/blob/master/lispy_forth.md), I presented the humble beginnings of a Lispy, Forth like language implemented in Common Lisp. This post goes further into specific features and the reasoning behind them. I decided from the start that this was going to be a fresh take on Forth, in the spirit of Lisp; taking nothing for granted; and I ran into plenty of interesting design choices as a result.
 
 ### repl
-If you wan't to play along with the examples, a basic repl may be started by cloning the [repository](https://github.com/codr4life/lifoo), followed by loading and evaluating ```(lifoo:lifoo-repl)```.
+If you wan't to play along with the examples, a basic REPL may be started by cloning the [repository](https://github.com/codr4life/lifoo), followed by loading and evaluating ```(lifoo:lifoo-repl)```.
 
 ```
 Welcome to Lifoo,
@@ -22,7 +22,7 @@ NIL
 ```
 
 ### reader
-One of the goals I set from the start was to reuse the Lisp reader as is to read Lifoo code. Looking back, sticking with this choice throughout hard times was fundamental to achieving a seamless integration since it acted as a natural obstacle to deviating from Lisp in other ways.
+One of the goals set early on in the design process was to reuse the Lisp reader as is for reading Lifoo code. Looking back, sticking with this choice throughout hard times was fundamental to achieving a seamless integration since it acted as a natural obstacle to deviating from Lisp in other ways.
 
 ### quoting
 Lifoo treats all list literals as quoted. When evaluating a list literal, the parser treats items as code tokens. The price for convenience is not being able to evaluate items in list literals without mapping eval or building from scratch, and delayed parsing of code blocks; but the approach fits like a glove with the simplicity of Forth while playing nice with Lisp.
@@ -191,7 +191,7 @@ Once token streams come on silver plates for free, the macro implementation pict
                        :exec (or ,exec *lifoo*)))
 ```
 
-### throw, catch & always
+### always, throw & catch
 One of the features that was waiting for macros to arrive was throwing and catching. ```always``` is implemented as a macro that wraps the entire token stream in ```unwind-protect```, catch pulls the same trick with ```handler-case```, and ```throw``` signals a condition. If a thrown value isn't caught, an error is reported.
 
 ```
@@ -251,7 +251,7 @@ Lifoo> 0 chan (1 2 + send :done) 1 spawn swap
 ```
 
 ### performance
-The only thing I can say for sure so far is that it's slower than Lisp, yet fast enough for my needs without even trying. And it should be; since most code is pre-compiled down to Lisp, which is plenty fast. The reason structs are slower is that defining a struct in Lisp with accessors is a complex operation. Evaluate ```(cl4l-test:run-suite '(:lifoo) :warmup 10 :reps 100)``` after loading to get an idea of the speed on your system.
+The only thing I can say for sure so far is that it's slower than Lisp, yet fast enough for my needs without even trying. And it should be; since most code is pre-compiled down to Lisp, which is plenty fast. The reason structs are slower is that defining a struct in Lisp with accessors is a complex operation. Evaluate ```(cl4l-test:run-suite '(:lifoo) :warmup 10 :reps 100)``` after loading to get an idea of the speed on your setup.
 
 ```
 CL-USER> (cl4l-test:run-suite '(:lifoo) :warmup 10 :reps 100)
@@ -274,6 +274,6 @@ TOTAL                         2.688
 NIL
 ```
 
-There is much more to say, but this post needs to end somewhere. You may find more in the same spirit [here](http://vicsydev.blogspot.de/) and [here](https://github.com/codr4life/vicsydev), and a full implementation of this idea and more [here](https://github.com/codr4life).
+There is much left to be said, but this post needs to end somewhere. You may find more in the same spirit [here](http://vicsydev.blogspot.de/) and [here](https://github.com/codr4life/vicsydev), and a full implementation of this idea and more [here](https://github.com/codr4life).
 
 peace, out

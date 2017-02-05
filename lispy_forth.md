@@ -1,5 +1,5 @@
 # [vicsy/dev](https://github.com/codr4life/vicsydev) | a Lispy, embedded Forth
-posted Feb 4th 2017, 02:10 am
+posted Feb 5th 2017, 02:50 pm
 
 ### preramble
 I've been craving for a trivial, embedded scripting language that feels just right for a long, long time; something I can quickly drop into any project that needs scripting without too much ceremony. I'm aware of Lua & co., but that's still not the kind of trivial I'm aiming for. And since I'm mostly slinging Lisp these days, it should be possible to leverage some of it's powers for a tighter integration.

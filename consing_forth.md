@@ -142,6 +142,7 @@ Lifoo> (:bar 42) make-foo
         (name (lifoo-pop)))
     (define-lifoo-struct name fields)))
 
+
 (defmacro define-lifoo-struct (name fields)
   "Defines struct NAME with FIELDS"
   `(progn

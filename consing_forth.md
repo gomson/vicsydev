@@ -208,12 +208,10 @@ Lifoo> :up throw
 (:CAUGHT . :UP)
 
 
-;; Pops $value and throws it 
 (define-lisp-word :throw ()
   (lifoo-throw (lifoo-pop)))
 
-;; Wraps parsed forms in unwind-protect with previous
-;; form as body
+
 (define-macro-word :always (in)
   (list
    (cons :always `(unwind-protect
@@ -221,8 +219,6 @@ Lifoo> :up throw
                          ,@(reverse (mapcar #'rest (rest in))))
                     (lifoo-eval ',(first (first in)))))))
 
-;; Wraps parsed forms in handler-case with previous
-;; form as handler
 (define-macro-word :catch (in)
   (list
    (cons :catch `(handler-case
@@ -246,7 +242,6 @@ Lifoo> 0 chan (1 2 + send :done) 1 spawn swap
        wait cons
 
 (:DONE . 3)
-
 ```
 
 ### performance

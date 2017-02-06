@@ -1,5 +1,5 @@
 # [vicsy/dev](https://github.com/codr4life/vicsydev) | consing Forth
-posted Feb 5th 2017, 02:00 pm
+posted Feb 6th 2017, 05:00 pm
 
 ### preramble
 In a previous [post](https://github.com/codr4life/vicsydev/blob/master/lispy_forth.md), I presented the humble beginnings of [Lifoo](https://github.com/codr4life/lifoo); a Lispy, Forth-like language implemented in Common Lisp. This post goes further into specific features and the reasoning behind them. I decided from the start that this was going to be a fresh take on Forth, in the spirit of Lisp; taking nothing for granted; and I ran into plenty of interesting design choices as a result.

@@ -137,7 +137,7 @@ Lifoo> (:bar 42) make-foo
 43
 
 
-(define-lisp-word :struct ()
+(define-lisp-word :struct (nil)
   (let ((fields (lifoo-pop))
         (name (lifoo-pop)))
     (define-lifoo-struct name fields)))
@@ -168,7 +168,7 @@ Lifoo> (:bar 42) make-foo
     `(let ((,_fn (symbol-function ,lisp))
            (,_sfn (and ,set? (fdefinition (list 'setf ,lisp)))))
        
-       (define-lisp-word ,lifoo ()
+       (define-lisp-word ,lifoo (nil)
          (lifoo-push
           (apply ,_fn ,args)
           :set (when ,set?
@@ -208,7 +208,7 @@ Lifoo> :up throw
 (:CAUGHT . :UP)
 
 
-(define-lisp-word :throw ()
+(define-lisp-word :throw (nil)
   (lifoo-throw (lifoo-pop)))
 
 

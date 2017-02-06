@@ -79,7 +79,7 @@ Lifoo> :lifoo
 ```
 
 ### comparisons
-Lisp reserves common operators for use with numbers, ```+-*/<>``` and more; Lifoo follows this tradition but provides generic compare operations rather than mirroring the ```eq(ua)(l)``` puzzle from Lisp which is too complex for such a simple language.
+Lisp reserves common operators for use with numbers, ```+-*/<>``` and more; Lifoo follows this tradition but also provides generic compare operators that work for numbers as well as any other Lifoo values.
 
 ```
 Lifoo> 1 2 + 3 =
@@ -145,7 +145,7 @@ Lifoo> "abc" 1 nth del drop
 ```
 
 ### definitions
-I decided to deviate from the traditional Forth syntax for defining words, a decision driven by the choice of reader. Lifoo provides a ```define``` word that defines preceding code and symbol as a word. ```define``` can be called anywhere; overwrites any previous bindings, and makes the new definition available for immediate use.
+I decided to deviate from the traditional Forth syntax for defining words, since neither the Lisp reader nor I approve of that level of cleverness. Lifoo provides a ```define``` word that defines preceding code and symbol as a word. ```define``` can be called anywhere; overwrites any previous bindings, and makes the new definition available for immediate use.
 
 ```
 Lifoo> (drop drop 42) :+ define

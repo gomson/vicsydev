@@ -24,7 +24,7 @@ CL-USER>
 ```
 
 ### reader
-One of the goals set early on in the design process was to reuse the Lisp reader as is for reading Lifoo code. Looking back, sticking with this choice through hard times was fundamental to achieving a seamless integration since it acted as a natural obstacle to deviating from the Lisp way.
+One of the goals set early on in the design process was to reuse the Lisp reader for reading Lifoo code. Looking back, sticking with this choice through hard times was fundamental to achieving a seamless integration since it acted as a natural obstacle to deviating from the Lisp way.
 
 ```
 Lifoo> "1 2 +" read
@@ -99,21 +99,6 @@ Lifoo> '(1 2 3) '(1 2 3 4) cmp
 1
 ```
 
-### definitions
-I decided to deviate from the traditional Forth syntax for defining words, a decision driven by the choice of reader. Lifoo provides a ```define``` word that defines preceding code and symbol as a word. ```define``` can be called anywhere; it overwrites any previous definitions, and makes the specified one available for immediate use.
-
-```
-Lifoo> (drop drop 42) :+ define
-       1 2 +
-
-42
-
-Lifoo> (+ 1 2) :foo define
-       :foo word source
-
-(+ 1 2)
-```
-
 ### setf
 The beauty of ```setf``` is that it untangles specifying a place from setting its value. If you still can't see it; imagine writing a generic function that can set indexes in arrays and replace tails of lists in any other language; then add fields in structs and keys in hash tables; ```setf``` allows you to pull tricks like that without missing a beat; and on top of that you can hook your own places into the protocol. Lifoo provides a comparable ```set``` word that sets values for any preceding stack cell that's hooked in.
 
@@ -157,6 +142,39 @@ Lifoo> "abc" 1 nth del drop
       (error "missing del: ~a" val))
     (funcall del)
     (lifoo-push val)))
+```
+
+### definitions
+I decided to deviate from the traditional Forth syntax for defining words, a decision driven by the choice of reader. Lifoo provides a ```define``` word that defines preceding code and symbol as a word. ```define``` can be called anywhere; overwrites any previous bindings, and makes the new definition available for immediate use.
+
+```
+Lifoo> (drop drop 42) :+ define
+       1 2 +
+
+42
+
+Lifoo> :+ source
+
+(DROP DROP 42)
+```
+
+### packages
+Package systems always seem to get in the way sooner or later, every language comes with it's own set of arbitrary limitations. Lifoo provides an extensible, tag-based init protocol. Words may belong to several different packages, and importing any of them imports the word. All tags in an init block must be matched for the words to be imported. Besides support for ```init```; packages are second class, the only way of defining one is from Lisp; the good news is that Lisp is right around the corner as long as you remembered to load the ```meta``` package; and the REPL loads all packages by default.
+
+```
+Lifoo> (define-lifoo-init (:foo :bar)
+         (define-word :baz (nil) 42 +))
+       lisp eval
+
+NIL
+
+Lifoo> (:foo :bar) init
+
+NIL
+
+Lifoo> 3 baz
+
+45
 ```
 
 ### structs
@@ -221,9 +239,17 @@ Lifoo> (:bar 42) make-foo
 ```
 
 ### macros
-Once token streams come on silver plates for free, the macro implementation picture changes drastically. I ended up with what is essentially Lisp macros with a touch of Forth. Like Lisp, Lifoo macros operate on streams of tokens. But since Forth is post-fix; macros deal with previously parsed, rather than wrapped, tokens. Lifoo provides macro words that are called to translate the token stream when code is parsed. A token stream consists of pairs of tokens and generated code, and the result of a macro call replaces the token stream from that point on. 
+I went back and Forth a couple of times on the issue of macros; once token streams come on silver plates, it's really hard to resist the temptation of going all in. I ended up with what is essentially Lisp macros with a touch of Forth. Like Lisp, Lifoo macros operate on streams of tokens. But since Forth is post-fix; macros deal with previously parsed, rather than wrapped, tokens. Lifoo provides macro words that are called to translate the token stream when code is parsed. A token stream consists of pairs of tokens and generated code, and the result of a macro call replaces the token stream from that point on. 
 
 ```
+Lifoo> :+ macro?
+
+NIL
+
+Lifoo> (+ 1 2) compile
+
+(PROGN (LIFOO-CALL '+) (LIFOO-PUSH 1) (LIFOO-PUSH 2))
+
 Lifoo> :assert macro?
 
 T
@@ -234,10 +260,6 @@ Lifoo> (t assert) compile
         (DO-LIFOO-CALL ((LIFOO-WORD 'ASSERT))
           (LET ((OK? (PROGN (LIFOO-PUSH T) (LIFOO-POP))))
             (UNLESS OK? (LIFOO-ERROR "assert failed: ~a" 'T)))))
-
-Lifoo> (t assert) compile lisp eval
-
-NIL
 
 
 (define-macro-word :assert (in out)

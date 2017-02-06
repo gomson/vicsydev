@@ -263,6 +263,7 @@ Lifoo> 0 chan (1 2 + send :done) 1 spawn swap
 
 (:DONE . 3)
 
+
 (define-lisp-word :spawn (nil)
   (let* ((num-args (lifoo-pop))
        (expr (lifoo-pop))

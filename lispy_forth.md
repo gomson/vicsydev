@@ -60,7 +60,7 @@ Lifoo> 0 chan (1 2 + send :done) 1 spawn swap
 ```
 
 ### words
-Forth likes to call functions words, and Lifoo keeps with that tradition. Lifoo comes with a modest but growing, modular set of built-in words. Words can be defined in either Lisp or Lifoo, and the goal is to gradually migrate as much functionality as possible to pure Lifoo. Functions for defining, looking up and un-defining words are also provided. 
+Forth likes to call functions words, and Lifoo keeps with that tradition. Lifoo comes with a modest but growing, modular set of built-in words. Words can be defined in either Lisp or Lifoo; functions for defining, looking up and un-defining words are also provided. 
 
 ```
 (define-word :eq? () cmp 0 =)

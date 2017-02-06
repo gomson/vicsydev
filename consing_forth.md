@@ -163,18 +163,12 @@ Package systems always seem to get in the way sooner or later, every language co
 
 ```
 Lifoo> (define-lifoo-init (:foo :bar)
-         (define-word :baz (nil) 42 +))
+         (define-word :baz (nil) 39 +))
        lisp eval
+       (:foo :bar) init
+       3 baz
 
-NIL
-
-Lifoo> (:foo :bar) init
-
-NIL
-
-Lifoo> 3 baz
-
-45
+42
 ```
 
 ### structs

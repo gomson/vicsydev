@@ -197,7 +197,7 @@ Lifoo> (:bar 42) make-foo
 ```
 
 ### macros
-Once token streams come on silver plates for free, the macro implementation picture changes drastically. I ended up with what is essentially Lisp macros with a touch of Forth. Like Lisp, Lifoo macros operate on streams of tokens. But since Forth is post-fix; macros deal with previously parsed, rather than wrapped, tokens. Lifoo provides macro words that are called to translate the token stream when code is parsed. A token stream consists of pairs of tokens and generated code, and the result of a macro call replaces the token stream from that point on.
+Once token streams come on silver plates for free, the macro implementation picture changes drastically. I ended up with what is essentially Lisp macros with a touch of Forth. Like Lisp, Lifoo macros operate on streams of tokens. But since Forth is post-fix; macros deal with previously parsed, rather than wrapped, tokens. Lifoo provides macro words that are called to translate the token stream when code is parsed. A token stream consists of pairs of tokens and generated code, and the result of a macro call replaces the token stream from that point on. 
 
 ```
 (defmacro define-macro-word (id (in out &key exec)
@@ -262,6 +262,19 @@ Lifoo> 0 chan (1 2 + send :done) 1 spawn swap
        wait cons
 
 (:DONE . 3)
+
+(define-lisp-word :spawn (nil)
+  (let* ((num-args (lifoo-pop))
+       (expr (lifoo-pop))
+       (exec (make-lifoo
+              :stack (clone
+                      (if num-args
+                          (subseq (stack *lifoo*) 0 num-args)
+                          (stack *lifoo*)))
+              :words (clone (words *lifoo*))))
+       (thread (make-thread (lambda ()
+                              (lifoo-eval expr :exec exec)))))
+    (lifoo-push thread)))
 ```
 
 ### performance

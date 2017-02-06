@@ -101,6 +101,15 @@ Lifoo> #(1 2 3) 1 nth 4 set drop
 Lifoo> clear :bar var 42 set env
 
 ((:BAR . 42))
+
+
+(define-lisp-word :set (nil)
+  (let* ((val (lifoo-pop))
+         (cell (lifoo-peek-cell))
+         (set (lifoo-set cell)))
+    (unless set
+      (error "missing set: ~a" val))
+    (funcall set val)))
 ```
 
 ### del
@@ -114,6 +123,16 @@ Lifoo> (1 2 3) 1 nth del drop
 Lifoo> "abc" 1 nth del drop
 
 "ac"
+
+
+(define-lisp-word :del (nil)
+  (let* ((cell (lifoo-peek-cell))
+         (val (lifoo-val cell))
+         (del (lifoo-del cell)))
+    (unless del
+      (error "missing del: ~a" val))
+    (funcall del)
+    (lifoo-push val)))
 ```
 
 ### structs
@@ -181,13 +200,15 @@ Lifoo> (:bar 42) make-foo
 Once token streams come on silver plates for free, the macro implementation picture changes drastically. I ended up with what is essentially Lisp macros with a touch of Forth. Like Lisp, Lifoo macros operate on streams of tokens. But since Forth is post-fix; macros deal with previously parsed, rather than wrapped, tokens. Lifoo provides macro words that are called to translate the token stream when code is parsed. A token stream consists of pairs of tokens and generated code, and the result of a macro call replaces the token stream from that point on.
 
 ```
-(defmacro define-macro-word (name (in &key exec)
+(defmacro define-macro-word (id (in out &key exec)
                              &body body)
   "Defines new macro word NAME in EXEC from Lisp forms in BODY"
-  `(lifoo-define-macro (keyword! ',name)
-                       (lambda (,in)
-                         ,@body)
-                       :exec (or ,exec *lifoo*)))
+  `(lifoo-define ,id (make-lifoo-word
+                      :id ,id
+                      :macro? t
+                      :fn (lambda (,in ,out)
+                            ,@body))
+                 :exec (or ,exec *lifoo*)))
 ```
 
 ### always, throw & catch
@@ -211,22 +232,21 @@ Lifoo> :up throw
 (define-lisp-word :throw (nil)
   (lifoo-throw (lifoo-pop)))
 
-
-(define-macro-word :always (in)
+(define-macro-word :always (in out)
   (list
-   (cons :always `(unwind-protect
-                       (progn
-                         ,@(reverse (mapcar #'rest (rest in))))
-                    (lifoo-eval ',(first (first in)))))))
+    (cons in `(unwind-protect
+                (progn
+                  ,@(reverse (mapcar #'rest (rest out))))
+             (lifoo-eval ',(first (first out)))))))
 
-(define-macro-word :catch (in)
+(define-macro-word :catch (in out)
   (list
-   (cons :catch `(handler-case
-                   (progn
-                     ,@(reverse (mapcar #'rest (rest in))))
-                 (lifoo-throw (c)
-                   (lifoo-push (value c))
-                   (lifoo-eval ',(first (first in))))))))
+    (cons in `(handler-case
+               (progn
+                 ,@(reverse (mapcar #'rest (rest out))))
+             (lifoo-throw (c)
+               (lifoo-push (value c))
+               (lifoo-eval ',(first (first out)))))))))
 ```
 
 ### multi-threading
@@ -245,7 +265,7 @@ Lifoo> 0 chan (1 2 + send :done) 1 spawn swap
 ```
 
 ### performance
-The only thing I can say for sure so far is that it's slower than Lisp, yet fast enough for my needs without even trying. And it should be; since most code is pre-compiled down to Lisp, which is plenty fast. The reason structs are slower is that defining a struct in Lisp with accessors is a complex operation. Evaluate ```(cl4l-test:run-suite '(:lifoo) :reps 3)``` after loading to get an idea of the speed on your setup, this runs all tests 3 x 30 times.
+The only thing I can say for sure so far is that it's slower than Lisp, yet fast enough for my needs. And it should be; since most code is pre-compiled all the way down to Lisp lambdas. The reason structs are slower is that defining a struct in Lisp with accessors is a complex operation. Evaluating ```(cl4l-test:run-suite '(:lifoo) :reps 3)``` after loading will give you an idea of the speed on your setup, this runs all tests 3 x 30 times.
 
 ```
 (cl4l-test:run-suite '(:lifoo) :reps 3)

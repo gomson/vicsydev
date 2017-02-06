@@ -245,26 +245,26 @@ Lifoo> 0 chan (1 2 + send :done) 1 spawn swap
 ```
 
 ### performance
-The only thing I can say for sure so far is that it's slower than Lisp, yet fast enough for my needs without even trying. And it should be; since most code is pre-compiled down to Lisp, which is plenty fast. The reason structs are slower is that defining a struct in Lisp with accessors is a complex operation. Evaluate ```(cl4l-test:run-suite '(:lifoo) :warmup 10 :reps 100)``` after loading to get an idea of the speed on your setup.
+The only thing I can say for sure so far is that it's slower than Lisp, yet fast enough for my needs without even trying. And it should be; since most code is pre-compiled down to Lisp, which is plenty fast. The reason structs are slower is that defining a struct in Lisp with accessors is a complex operation. Evaluate ```(cl4l-test:run-suite '(:lifoo) :warmup 1 :reps 10)``` after loading to get an idea of the speed on your setup, this repeats all tests 100 times with 10 warm-ups.
 
 ```
-CL-USER> (cl4l-test:run-suite '(:lifoo) :warmup 10 :reps 100)
-(lifoo abc)                    0.34
-(lifoo array)                 0.396
-(lifoo compare)               0.256
-(lifoo env)                   0.028
-(lifoo error)                 0.072
-(lifoo flow)                  1.192
-(lifoo io)                    0.004
-(lifoo list)                  0.244
+LIFOO> (cl4l-test:run-suite '(:lifoo) :warmup 1 :reps 10)
+(lifoo abc)                   0.144
+(lifoo array)                 0.068
+(lifoo compare)                0.04
+(lifoo env)                   0.052
+(lifoo error)                 0.016
+(lifoo flow)                  0.248
+(lifoo io)                      0.0
+(lifoo list)                  0.116
 (lifoo log)                   0.008
-(lifoo meta)                  0.084
-(lifoo stack)                 0.016
-(lifoo string)                0.248
-(lifoo struct)                1.228
-(lifoo thread)                0.176
+(lifoo meta)                  0.096
+(lifoo stack)                 0.052
+(lifoo string)                0.052
+(lifoo struct)                1.344
+(lifoo thread)                0.112
 (lifoo word)                  0.084
-TOTAL                         4.376
+TOTAL                         2.432
 NIL
 ```
 

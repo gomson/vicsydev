@@ -94,6 +94,127 @@ Forth likes to call functions words, and Lifoo keeps with that tradition. Lifoo 
 The following definitions have been hand-picked for their illustrative value, the full implementation of Lifoo currently weighs in at around 400 lines excluding word definitions.
 
 ```
+(defmacro define-word (name ((&rest args) &key exec) &body body)
+  "Defines new word with NAME in EXEC from BODY"
+  `(lifoo-define ',name
+                 (make-lifoo-word :id ,(keyword! name)
+                                  :source ',body
+                                  :args ',args)
+                 :exec (or ,exec *lifoo*)))
+
+(defmacro define-lisp-word (id ((&rest args) &key exec speed)
+                            &body body)
+  "Defines new word with NAME in EXEC from Lisp forms in BODY"
+  `(lifoo-define ,id
+                 (make-lifoo-word
+                  :id ,id
+                  :source ',body
+                  :fn (lambda ()
+                        ,(lifoo-optimize :speed speed)
+                        ,@body)
+                  :args ',args)
+                 :exec (or ,exec *lifoo*)))
+
+(defmacro define-macro-word (id (in out &key exec)
+                             &body body)
+  "Defines new macro word NAME in EXEC from Lisp forms in BODY"
+  `(lifoo-define ,id (make-lifoo-word
+                      :id ,id
+                      :macro? t
+                      :source ',body
+                      :fn (lambda (,in ,out)
+                            ,@body))
+                 :exec (or ,exec *lifoo*)))
+
+(defmacro do-lifoo ((&key (env t) exec) &body body)
+  "Runs BODY in EXEC"
+  `(with-lifoo (:exec (or ,exec *lifoo* (make-lifoo))
+                :env ,env)
+     (lifoo-eval ',body)
+     (lifoo-pop)))
+
+(defun lifoo-eval (expr &key (exec *lifoo*))
+  "Returns result of parsing and evaluating EXPR in EXEC"
+  (with-lifoo (:exec exec)
+    (handler-case
+        (eval `(progn ,@(lifoo-compile expr)))
+      (lifoo-throw (c)
+        (lifoo-error "thrown value not caught: ~a" (value c))))))
+
+(defun lifoo-compile (forms &key (exec *lifoo*))
+  "Parses EXPR and returns code for EXEC"
+  (labels ((compile-forms (in out)
+             (if in
+                 (let ((f (first in)))
+                   (compile-forms (rest in)
+                                  (lifoo-compile-form f out)))
+                 (mapcar #'rest (nreverse out)))))
+    (with-lifoo (:exec exec)
+      (compile-forms (list! forms) nil))))
+
+(defun lifoo-compile-form (f in)
+  "Compiles form F for token stream IN and returns new stream"
+  (cond
+    ((simple-vector-p f)
+     (let ((len (length f)))
+       (cons (cons f `(lifoo-push
+                          ,(make-array
+                            len
+                            :adjustable t
+                            :fill-pointer len
+                            :initial-contents f)))
+             in)))
+    
+    ((consp f)
+     (if (consp (rest f))
+         (cons (cons f `(lifoo-push ',(copy-list f))) in)
+         (cons (cons f `(lifoo-push ',(cons (first f) (rest f))))
+               in)))
+    ((null f)
+     (cons (cons f `(lifoo-push nil)) in))
+    ((eq f t)
+     (cons (cons f `(lifoo-push t)) in))
+    ((or (and (symbolp f) (not (keywordp f)))
+         (lifoo-word-p f))
+     (lifoo-expand f in))
+    (t
+     (cons (cons f `(lifoo-push ,f)) in))))
+
+(defun lifoo-expand (in out)
+  "Expands IN into OUT and returns new token stream"
+  (let ((word (lifoo-word in)))
+    (if word
+        (if (macro? word)
+            (let ((exp (funcall (fn word) in out)))
+              (cons (cons (first (first exp)) 
+                          `(do-lifoo-call ((lifoo-word ',in))
+                               ,(rest (first exp))))
+               (rest exp)))
+            (progn
+              (when (args word) (lifoo-compile-args word out))
+              (cons (cons in `(lifoo-call ',in)) out)))
+        (cons (cons in `(lifoo-call ',in))
+              out))))
+
+(defun lifoo-call (word &key (exec *lifoo*))
+  "Calls WORD in EXEC"
+
+  (unless (lifoo-word-p word)
+    (let ((id word))
+      (unless (setf word (lifoo-word id))
+        (error "missing word: ~a" id)))) 
+
+  (do-lifoo-call (word :exec exec)
+    (funcall (lifoo-compile-word word))))
+
+(defun lifoo-compile-word (word &key (exec *lifoo*) speed)
+  "Makes sure word is compiled and returns function"
+  (or (fn word)
+      (setf (fn word)
+            (eval `(lambda ()
+                     ,(lifoo-optimize :speed speed)
+                     ,@(lifoo-compile (source word)
+                                      :exec exec))))))
 ```
 
 ### repl

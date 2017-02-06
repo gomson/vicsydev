@@ -233,7 +233,7 @@ Lifoo> (:bar 42) make-foo
 ```
 
 ### macros
-I went back and Forth a couple of times on the issue of macros; once token streams come on silver plates, it's really hard to resist the temptation of going all in. I ended up with what is essentially Lisp macros with a touch of Forth. Like Lisp, Lifoo macros operate on streams of tokens. But since Forth is post-fix; macros deal with previously parsed, rather than wrapped, tokens. Lifoo provides macro words that are called to translate the token stream when code is parsed. A token stream consists of pairs of tokens and generated code, and the result of a macro call replaces the token stream from that point on. 
+I went back and Forth a couple of times on the issue of macros; once token streams come on silver plates, it's really hard to resist the temptation of going all in. What I ended up with is essentially Lisp macros with a touch of Forth. Like Lisp, Lifoo macros operate on streams of tokens. But since Forth is post-fix; macros deal with previously parsed, rather than wrapped, tokens. Lifoo provides macro words that are called to translate the token stream when code is parsed. A token stream consists of pairs of tokens and generated code, and the result of a macro call replaces the token stream from that point on. 
 
 ```
 Lifoo> :+ macro?

@@ -2,7 +2,7 @@
 posted Feb 5th 2017, 02:00 pm
 
 ### preramble
-In a previous [post](https://github.com/codr4life/vicsydev/blob/master/lispy_forth.md), I presented the humble beginnings of a Lispy, Forth-like language implemented in Common Lisp. This post goes further into specific features and the reasoning behind them. I decided from the start that this was going to be a fresh take on Forth, in the spirit of Lisp; taking nothing for granted; and I ran into plenty of interesting design choices as a result.
+In a previous [post](https://github.com/codr4life/vicsydev/blob/master/lispy_forth.md), I presented the humble beginnings of Lifoo; a Lispy, Forth-like language implemented in Common Lisp. This post goes further into specific features and the reasoning behind them. I decided from the start that this was going to be a fresh take on Forth, in the spirit of Lisp; taking nothing for granted; and I ran into plenty of interesting design choices as a result.
 
 ### repl
 If you wan't to play along with the examples, a basic REPL may be started by cloning the [repository](https://github.com/codr4life/lifoo), followed by loading and evaluating ```(lifoo:lifoo-repl)```.
@@ -249,22 +249,22 @@ The only thing I can say for sure so far is that it's slower than Lisp, yet fast
 
 ```
 CL-USER> (cl4l-test:run-suite '(:lifoo) :warmup 10 :reps 100)
-(lifoo)                       0.028
-(lifoo array)                  0.28
+(lifoo abc)                    0.34
+(lifoo array)                 0.396
 (lifoo compare)               0.256
-(lifoo env)                   0.036
-(lifoo error)                 0.012
-(lifoo flow)                  0.312
-(lifoo io)                    0.008
-(lifoo list)                  0.036
-(lifoo log)                   0.016
-(lifoo meta)                   0.08
+(lifoo env)                   0.028
+(lifoo error)                 0.072
+(lifoo flow)                  1.192
+(lifoo io)                    0.004
+(lifoo list)                  0.244
+(lifoo log)                   0.008
+(lifoo meta)                  0.084
 (lifoo stack)                 0.016
-(lifoo string)                 0.16
-(lifoo struct)                  1.2
-(lifoo thread)                0.172
-(lifoo word)                  0.076
-TOTAL                         2.688
+(lifoo string)                0.248
+(lifoo struct)                1.228
+(lifoo thread)                0.176
+(lifoo word)                  0.084
+TOTAL                         4.376
 NIL
 ```
 

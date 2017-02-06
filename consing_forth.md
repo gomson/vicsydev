@@ -8,6 +8,7 @@ In a previous [post](https://github.com/codr4life/vicsydev/blob/master/lispy_for
 If you wan't to play along with the examples, a basic REPL may be started by cloning the [repository](https://github.com/codr4life/lifoo), followed by loading and evaluating ```(lifoo:lifoo-repl)```.
 
 ```
+CL-USER> (lifoo:lifoo-repl)
 Welcome to Lifoo,
 press enter on empty line to evaluate,
 exit ends session
@@ -15,6 +16,7 @@ exit ends session
 Lifoo> 1 2 +
 
 3
+
 Lifoo> exit
 
 NIL
@@ -23,6 +25,28 @@ CL-USER>
 
 ### reader
 One of the goals set early on in the design process was to reuse the Lisp reader as is for reading Lifoo code. Looking back, sticking with this choice through hard times was fundamental to achieving a seamless integration since it acted as a natural obstacle to deviating from the Lisp way.
+
+```
+Lifoo> "1 2 +" read
+
+(1 2 +)
+
+Lifoo> "1 2 +" read eval
+
+3
+
+Lifoo> (1 2 +) write
+
+"1 2 +"
+
+Lifoo> (1 2 +) write read
+
+(1 2 +)
+
+Lifoo> (1 2 +) write read eval
+
+3
+```
 
 ### quoting
 Lifoo treats all list literals as quoted. When evaluating a list literal, the parser treats items as code tokens. The price for convenience is not being able to evaluate items in list literals without mapping eval or building from scratch, but the approach fits like a glove with the simplicity of Forth and plays nice with Lisp.
@@ -200,6 +224,33 @@ Lifoo> (:bar 42) make-foo
 Once token streams come on silver plates for free, the macro implementation picture changes drastically. I ended up with what is essentially Lisp macros with a touch of Forth. Like Lisp, Lifoo macros operate on streams of tokens. But since Forth is post-fix; macros deal with previously parsed, rather than wrapped, tokens. Lifoo provides macro words that are called to translate the token stream when code is parsed. A token stream consists of pairs of tokens and generated code, and the result of a macro call replaces the token stream from that point on. 
 
 ```
+Lifoo> :assert macro?
+
+T
+
+Lifoo> (t assert) compile
+
+(PROGN
+        (DO-LIFOO-CALL ((LIFOO-WORD 'ASSERT))
+          (LET ((OK? (PROGN (LIFOO-PUSH T) (LIFOO-POP))))
+            (UNLESS OK? (LIFOO-ERROR "assert failed: ~a" 'T)))))
+
+Lifoo> (t assert) compile lisp eval
+
+NIL
+
+
+(define-macro-word :assert (in out)
+  (cons (cons in
+            `(let ((ok? (progn
+                          ,@(lifoo-compile (first (first out)))
+                          (lifoo-pop))))
+               (unless ok?
+                 (lifoo-error "assert failed: ~a"
+                              ',(first (first out))))))
+        (rest out)))
+
+
 (defmacro define-macro-word (id (in out &key exec)
                              &body body)
   "Defines new macro word NAME in EXEC from Lisp forms in BODY"

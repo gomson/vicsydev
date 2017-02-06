@@ -1,5 +1,5 @@
 # [vicsy/dev](https://github.com/codr4life/vicsydev) | a Lispy, embedded Forth
-posted Feb 5th 2017, 02:50 pm
+posted Feb 6th 2017, 05:00 pm
 
 ### preramble
 I've been craving for a trivial, embedded scripting language that feels just right for a long, long time; something I can quickly drop into any project that needs scripting without too much ceremony. I'm aware of Lua & co., but that's still not the kind of trivial I'm aiming for. And since I'm mostly slinging Lisp these days, it should be possible to leverage some of it's powers for a tighter integration.
@@ -22,11 +22,6 @@ Lifoo> (1 2 3) (2 *) map
 Lifoo> ((1 2 +) (3 4 +) (5 6 +)) (eval) map
 
 (3 7 11)
-
-Lifoo> (drop drop 42) :+ define
-       1 2 +
-
-42
 
 Lifoo> #(1 2 3) 1 nth 4 set drop
 
@@ -57,6 +52,23 @@ Lifoo> 0 chan (1 2 + send :done) 1 spawn swap
        wait cons
 
 (:DONE . 3)
+
+Lifoo> (drop drop 42) :+ define
+       1 2 +
+
+42
+
+Lifoo> (1 2 +) eval
+
+3
+
+Lifoo> (1 2 +) compile
+
+(PROGN (LIFOO-PUSH 1) (LIFOO-PUSH 2) (LIFOO-CALL '+))
+
+Lifoo> (1 2 +) compile lisp eval
+
+3
 ```
 
 ### words
@@ -255,7 +267,9 @@ Lifoo> "hello Lifoo!" print ln
 
 hello Lifoo!
 NIL
+
 Lifoo>
+
 
 (defun lifoo-repl (&key (exec (lifoo-init t :exec (make-lifoo)))
                         (in *standard-input*)

@@ -22,7 +22,7 @@ CL-USER>
 ```
 
 ### reader
-One of the goals set early on in the design process was to reuse the Lisp reader as is for reading Lifoo code. Looking back, sticking with this choice throughout hard times was fundamental to achieving a seamless integration since it acted as a natural obstacle to deviating from Lisp in other ways.
+One of the goals set early on in the design process was to reuse the Lisp reader as is for reading Lifoo code. Looking back, sticking with this choice through hard times was fundamental to achieving a seamless integration since it acted as a natural obstacle to deviating from the Lisp way.
 
 ### quoting
 Lifoo treats all list literals as quoted. When evaluating a list literal, the parser treats items as code tokens. The price for convenience is not being able to evaluate items in list literals without mapping eval or building from scratch, but the approach fits like a glove with the simplicity of Forth and plays nice with Lisp.

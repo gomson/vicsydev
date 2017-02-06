@@ -24,7 +24,7 @@ CL-USER>
 ```
 
 ### reader
-One of the goals set early on in the design process was to reuse the Lisp reader for reading Lifoo code. Looking back, sticking with this choice through hard times was fundamental to achieving a seamless integration since it acted as a natural obstacle to deviating from the Lisp way.
+One of the goals set early on in the design process was to reuse the Lisp reader for reading Lifoo code. Looking back, sticking with this choice was fundamental to achieving a seamless integration since it acted as a natural obstacle to deviating from the Lisp way.
 
 ```
 Lifoo> "1 2 +" read

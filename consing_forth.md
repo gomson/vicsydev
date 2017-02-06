@@ -9,16 +9,16 @@ If you wan't to play along with the examples, a basic REPL may be started by clo
 
 ```
 Welcome to Lifoo,
-press enter on empty line to eval expr,
+press enter on empty line to evaluate,
 exit ends session
 
 Lifoo> 1 2 +
 
 3
-
 Lifoo> exit
 
 NIL
+CL-USER>
 ```
 
 ### reader

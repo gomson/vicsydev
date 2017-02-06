@@ -159,7 +159,7 @@ Lifoo> :+ source
 ```
 
 ### packages
-Package systems always seem to get in the way sooner or later, every language comes with it's own set of arbitrary limitations. Lifoo provides an extensible, tag-based init protocol. Words may belong to several different packages, and importing any of them imports the word. All tags in an init block must be matched for the words to be imported. Besides support for ```init```; packages are second class, the only way of defining one is from Lisp; the good news is that Lisp is right around the corner as long as you remembered to load the ```meta``` package; and the REPL loads all packages by default.
+Package systems always seem to get in the way sooner or later, every language comes with it's own set of arbitrary limitations. Lifoo provides an extensible, tag-based init protocol. Words may belong to several different packages, and importing any of them imports the word. All tags in an init block must be matched for words to be imported. Besides support for ```init```; packages are second class, and the only way of defining one is from Lisp. the good news is that Lisp is right around the corner as long as you remembered to load the ```meta``` package; and the REPL loads all packages by default.
 
 ```
 Lifoo> (define-lifoo-init (:foo :bar)
@@ -346,7 +346,7 @@ Lifoo> 0 chan (1 2 + send :done) 1 spawn swap
 ```
 
 ### performance
-The only thing I can say for sure so far is that it's slower than Lisp, yet fast enough for my needs. And it should be; since most code is pre-compiled all the way down to Lisp lambdas. The reason structs are slower is that defining a struct in Lisp with accessors is a complex operation. Evaluating ```(cl4l-test:run-suite '(:lifoo) :reps 3)``` after loading will give you an idea of the speed on your setup, this runs all tests 3 x 30 times.
+The only thing I can say for sure so far is that it's slower than Lisp, yet fast enough for my needs. And it should be; since most code is pre-compiled all the way down to Lisp lambdas. The reason structs are slower is that defining a struct in Lisp with accessors is a complex operation. Evaluating ```(cl4l-test:run-suite '(:lifoo) :reps 3)``` after loading will give you an idea of the speed on your setup by running all tests 3 x 30 times.
 
 ```
 (cl4l-test:run-suite '(:lifoo) :reps 3)

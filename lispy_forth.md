@@ -15,6 +15,26 @@ Lifoo> 1 2 +
 
 3
 
+Lifoo> (1 2 +)
+
+(1 2 +)
+
+Lifoo> (1 2 +) eval
+
+3
+
+Lifoo> (1 2 +) compile
+
+(PROGN (LIFOO-PUSH 1) (LIFOO-PUSH 2) (LIFOO-CALL '+))
+
+Lifoo> (1 2 +) inline
+
+#<FUNCTION {1003F99E8B}>
+
+Lifoo> (1 2 +) inline eval
+
+3
+
 Lifoo> (1 2 3) (2 *) map
 
 (2 4 6)
@@ -57,22 +77,6 @@ Lifoo> (drop drop 42) :+ define
        1 2 +
 
 42
-
-Lifoo> (1 2 +) eval
-
-3
-
-Lifoo> (1 2 +) compile
-
-(PROGN (LIFOO-PUSH 1) (LIFOO-PUSH 2) (LIFOO-CALL '+))
-
-Lifoo> (1 2 +) inline
-
-#<FUNCTION {1003F99E8B}>
-
-Lifoo> (1 2 +) inline eval
-
-3
 ```
 
 ### words

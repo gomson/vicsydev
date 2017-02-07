@@ -169,6 +169,22 @@ Lifoo> (define-lifoo-init (:foo :bar)
        3 baz
 
 42
+
+
+(define-macro-word :lisp (in out)
+  (cons (cons in
+            `(lifoo-push (lambda ()
+                           (lifoo-optimize)
+                           ,(first (first out)))))
+      (rest out))))
+      
+      
+(defmacro define-lifoo-init (tags &body body)
+  "Defines init for TAGS around BODY"
+  `(setf (gethash ',tags *lifoo-init*)
+         (lambda (exec)
+           (with-lifoo (:exec exec)
+             ,@body))))
 ```
 
 ### structs

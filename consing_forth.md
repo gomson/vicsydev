@@ -62,7 +62,7 @@ Lifoo> (1 2 3) (2 *) map
 
 Lifoo> (2 *) inline
 
-#<FUNCTION (LAMBDA () :IN #:DROP-THRU-TAG-1) {1008CD673B}>
+#<FUNCTION {1008CD673B}>
 
 Lifoo> (1 2 3) (2 *) inline map
 
@@ -276,17 +276,14 @@ Lifoo> (+ 1 2) compile
 
 (PROGN (LIFOO-CALL '+) (LIFOO-PUSH 1) (LIFOO-PUSH 2))
 
-Lifoo> :assert macro?
+Lifoo> :inline macro?
 
 T
 
-Lifoo> (t assert) compile
+(+ 1 2) inline compile
 
 (PROGN
-        (DO-LIFOO-CALL ((LIFOO-WORD 'ASSERT))
-          (LET ((OK? (PROGN (LIFOO-PUSH T) (LIFOO-POP))))
-            (UNLESS OK? (LIFOO-ERROR "assert failed: ~a" 'T)))))
-
+  (FUNCALL #<FUNCTION {100426B4EB}>))
 
 (define-macro-word :assert (in out)
   (cons (cons in

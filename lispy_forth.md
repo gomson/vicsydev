@@ -68,7 +68,7 @@ Lifoo> (1 2 +) compile
 
 Lifoo> (1 2 +) compile link
 
-#<FUNCTION (LAMBDA ()) {1003F99E8B}>
+#<FUNCTION {1003F99E8B}>
 
 Lifoo> (1 2 +) compile link eval
 

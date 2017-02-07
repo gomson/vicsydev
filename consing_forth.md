@@ -2,7 +2,7 @@
 posted Feb 6th 2017, 05:00 pm
 
 ### preramble
-In a previous [post](https://github.com/codr4life/vicsydev/blob/master/lispy_forth.md), I presented the humble beginnings of [Lifoo](https://github.com/codr4life/lifoo); a Lispy, Forth-like language implemented in Common Lisp. This post goes further into specific features and the reasoning behind them. I decided from the start that this was going to be a fresh take on Forth, in the spirit of Lisp; taking nothing for granted; and I ran into plenty of interesting design choices as a result.
+In a previous [post](https://github.com/codr4life/vicsydev/blob/master/lispy_forth.md), I presented the humble beginnings of [Lifoo](https://github.com/codr4life/lifoo); a Lispy, Forth-like language implemented in Common Lisp. This post goes further into specific features and the reasoning behind them. I decided from the start that this was going to be a fresh take on Forth, in the spirit of Lisp; taking nothing for granted; and I ran into plenty of interesting choices as a result.
 
 ### repl
 If you wan't to play along with the examples, a basic REPL may be started by cloning the [repository](https://github.com/codr4life/lifoo), followed by loading and evaluating ```(lifoo:lifoo-repl)```.
@@ -49,7 +49,7 @@ Lifoo> (1 2 +) write read eval
 ```
 
 ### quoting
-Lifoo treats all list literals as quoted. When evaluating a list literal, the parser treats items as code tokens. The price for convenience is not being able to evaluate items in list literals without mapping eval or building from scratch, but the approach fits like a glove with the simplicity of Forth and plays nice with Lisp.
+Lifoo treats all list literals as quoted. When evaluating a list literal, the parser treats items as code tokens. The price for convenience is not being able to evaluate items in list literals without mapping eval or building from scratch, but the approach fits like a glove with the simplicity of Forth and plays nice with Lisp. ```inline``` pre-compiles the preceding list down to a Lisp lambda.
 
 ```
 Lifoo> (1 2 3)
@@ -60,7 +60,23 @@ Lifoo> (1 2 3) (2 *) map
 
 (2 4 6)
 
+Lifoo> (2 *) inline
+
+#<FUNCTION (LAMBDA () :IN #:DROP-THRU-TAG-1) {1008CD673B}>
+
+Lifoo> (1 2 3) (2 *) inline map
+
+(2 4 6)
+
 Lifoo> ((1 2 +) (3 4 +) (5 6 +)) (eval) map
+
+(3 7 11)
+
+Lifoo> (1 2 +) inline
+       (3 4 +) inline
+       (5 6 +) inline
+       stack reverse
+       (eval) map
 
 (3 7 11)
 ```

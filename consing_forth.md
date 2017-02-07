@@ -128,7 +128,7 @@ Lifoo> clear :bar var 42 set env
 ((:BAR . 42))
 
 
-(define-lisp-word :set (nil)
+(define-lisp-word :set ()
   (let* ((val (lifoo-pop))
          (cell (lifoo-peek-cell))
          (set (lifoo-set cell)))
@@ -150,7 +150,7 @@ Lifoo> "abc" 1 nth del drop
 "ac"
 
 
-(define-lisp-word :del (nil)
+(define-lisp-word :del ()
   (let* ((cell (lifoo-peek-cell))
          (val (lifoo-val cell))
          (del (lifoo-del cell)))
@@ -179,7 +179,7 @@ Package systems always seem to get in the way sooner or later, every language co
 
 ```
 Lifoo> (define-lifoo-init (:foo :bar)
-         (define-word :baz (nil) 39 +))
+         (define-word :baz () 39 +))
        lisp eval
        (:foo :bar) init
        3 baz
@@ -224,7 +224,7 @@ Lifoo> (:bar 42) make-foo
 43
 
 
-(define-lisp-word :struct (nil)
+(define-lisp-word :struct ()
   (let ((fields (lifoo-pop))
         (name (lifoo-pop)))
     (define-lifoo-struct name fields)))
@@ -255,7 +255,7 @@ Lifoo> (:bar 42) make-foo
     `(let ((,_fn (symbol-function ,lisp))
            (,_sfn (and ,set? (fdefinition (list 'setf ,lisp)))))
        
-       (define-lisp-word ,lifoo (nil)
+       (define-lisp-word ,lifoo ()
          (lifoo-push
           (apply ,_fn ,args)
           :set (when ,set?
@@ -328,7 +328,7 @@ Lifoo> :up throw
 (:CAUGHT . :UP)
 
 
-(define-lisp-word :throw (nil)
+(define-lisp-word :throw ()
   (lifoo-throw (lifoo-pop)))
 
 (define-macro-word :always (in out)
@@ -363,7 +363,7 @@ Lifoo> 0 chan (1 2 + send :done) 1 spawn swap
 (:DONE . 3)
 
 
-(define-lisp-word :spawn (nil)
+(define-lisp-word :spawn ()
   (let* ((num-args (lifoo-pop))
        (expr (lifoo-pop))
        (exec (make-lifoo

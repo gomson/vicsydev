@@ -66,7 +66,11 @@ Lifoo> (1 2 +) compile
 
 (PROGN (LIFOO-PUSH 1) (LIFOO-PUSH 2) (LIFOO-CALL '+))
 
-Lifoo> (1 2 +) compile lisp eval
+Lifoo> (1 2 +) compile link
+
+#<FUNCTION (LAMBDA ()) {1003F99E8B}>
+
+Lifoo> (1 2 +) compile link eval
 
 3
 ```

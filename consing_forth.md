@@ -353,7 +353,8 @@ Lifoo> 1 chan 42 send recv
 
 42
 
-Lifoo> 0 chan (1 2 + send :done) 1 spawn swap 
+Lifoo> 0 chan 
+       (1 2 + send :done) 1 spawn swap 
        recv swap drop swap 
        wait cons
 

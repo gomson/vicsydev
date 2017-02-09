@@ -2,13 +2,13 @@
 posted Feb 6th 2017, 05:00 pm
 
 ### preramble
-I've been craving for a trivial, embedded scripting language that feels just right for a long, long time; something I can quickly drop into any project that needs scripting without too much ceremony. I'm aware of Lua & co., but that's still not the kind of trivial I'm aiming for. And since I'm mostly slinging Lisp these days, it should be possible to leverage some of it's powers for a tighter integration.
+I've been craving for a trivial, embedded scripting language that feels just right for a long, long time; something I can quickly drop into any project that needs scripting without too much ceremony. I'm aware of Lua & co., but that's still not the kind of trivial I'm aiming for. And since I'm mostly slinging Lisp these days, it should be possible to leverage some of it's power for a tighter integration.
 
 ### forth
 If you have no idea what Forth is; a first step is to think of it as Reverse Polish Notation for code, the kind of code Yoda would write. Like Lisp, Forth is more idea than implementation; arguably even more so than Lisp because of it's simplicity. While widely popular in embedded hardware circles, it's unfortunately mostly forgotten outside of that niche. Unfortunate because it's one of the most trivial languages to implement, and a solid foundation for embedded and/or domain specific languages. 
 
 ### lifoo
-There's a saying in Forth circles; that if you've seen one Forth compiler, you've seen one Forth compiler. Besides being based on stacks and words, Lifoo is very much Lisp in Forth clothes; to the point where it reuses the Lisp reader to read Lifoo code. Lifoo comes with a macro called DO-LIFOO to simplify executing code inline; separate functions for parsing, evaluating and compiling expressions are also provided. 
+There's a saying in Forth circles; that if you've seen one Forth compiler, you've seen one Forth compiler. Besides being based on stacks and words, Lifoo is very much Lisp in Forth clothes; to the point where it reuses the Lisp reader to read Lifoo code.
 
 ```
 Lifoo> 1 2 +
@@ -27,11 +27,11 @@ Lifoo> (1 2 +) compile
 
 (PROGN (LIFOO-PUSH 1) (LIFOO-PUSH 2) (LIFOO-CALL '+))
 
-Lifoo> (1 2 +) inline
+Lifoo> (1 2 +) compile link
 
 #<FUNCTION {1003F99E8B}>
 
-Lifoo> (1 2 +) inline eval
+Lifoo> (1 2 +) compile link eval
 
 3
 
@@ -47,7 +47,7 @@ Lifoo> #(1 2 3) 1 nth 4 set drop
 
 #(1 4 3)
 
-Lifoo> "abc" 1 nth del drop
+Lifoo> "abc" 1 nth del
 
 "ac"
 
@@ -60,94 +60,114 @@ Lifoo> ((bar -1) baz) :foo struct
 
 T
 
-Lifoo> :frisbee throw
-       "skipped" print ln
-       (:always) always
+Lifoo> ((:frisbee throw
+         "skipped" print ln)
+        (:always) always)
        (drop) catch
 
 :ALWAYS
 
-Lifoo> 0 chan (1 2 + send :done) 1 spawn swap 
+Lifoo> 0 chan 
+       (1 2 + send :done)@ 1 spawn swap 
        recv swap drop swap 
        wait cons
 
 (:DONE . 3)
 
-Lifoo> (drop drop 42) :+ define
-       1 2 +
+Lifoo> (lifoo-push (concatenate 'string
+                             (lifoo-pop)
+                             (lifoo-pop)))@@
+       (string string) :+ define
+       "def" "abc" + 1 2 + cons
 
-42
+(3 . "abcdef")
 ```
 
 ### words
 Forth likes to call functions words, and Lifoo keeps with that tradition. Lifoo comes with a modest but growing, modular set of built-in words. Words can be defined in either Lisp or Lifoo; functions for defining, looking up and un-defining words are also provided. 
 
 ```
-(define-word :eq? (nil) cmp 0 =)
+(define-word :array (hash-table) ()
+  list array)
 
 (define-lisp-word :cmp (nil)
   (let ((lhs (lifoo-pop))
         (rhs (lifoo-pop)))
     (lifoo-push (compare lhs rhs))))
 
-(define-macro-word :always (in out)
-  (list
-    (cons in `(unwind-protect
-                (progn
-                  ,@(reverse (mapcar #'rest (rest out))))
-             (lifoo-eval ',(first (first out)))))))
+(define-macro-word :@ (in out)
+  (cons (cons in
+            `(lifoo-push (lambda ()
+                           (lifoo-optimize)
+                           ,@(lifoo-compile
+                              (first (first out))))))
+        (rest out))))
 ```
 
 ### implementation
 The following definitions have been hand-picked for their illustrative value, the full implementation of Lifoo currently weighs in at around 400 lines excluding word definitions.
 
 ```
-(defmacro define-word (name ((&rest args) &key exec) &body body)
-  "Defines new word with NAME in EXEC from BODY"
-  `(lifoo-define ',name
-                 (make-lifoo-word :id ,(keyword! name)
-                                  :source ',body
-                                  :args ',args)
+
+(defmacro define-word (id args (&key exec) &body body)
+  "Defines new word with ID in EXEC from BODY"
+  `(lifoo-define (make-lifoo-word ,id
+                                  :args ',args
+                                  :source ',body)
                  :exec (or ,exec *lifoo*)))
 
-(defmacro define-lisp-word (id ((&rest args) &key exec speed)
-                            &body body)
+(defmacro define-lisp-word (id args (&key exec speed) &body body)
   "Defines new word with NAME in EXEC from Lisp forms in BODY"
-  `(lifoo-define ,id
-                 (make-lifoo-word
-                  :id ,id
-                  :source ',body
-                  :fn (lambda ()
-                        ,(lifoo-optimize :speed speed)
-                        ,@body)
-                  :args ',args)
-                 :exec (or ,exec *lifoo*)))
+  `(lifoo-define
+    (make-lifoo-word ,id
+                     :args ',args
+                     :source ',body
+                     :fn (lambda ()
+                           ,(lifoo-optimize :speed speed)
+                           ,@body))
+    :exec (or ,exec *lifoo*)))
 
 (defmacro define-macro-word (id (in out &key exec)
                              &body body)
   "Defines new macro word NAME in EXEC from Lisp forms in BODY"
-  `(lifoo-define ,id (make-lifoo-word
-                      :id ,id
-                      :macro? t
-                      :source ',body
-                      :fn (lambda (,in ,out)
-                            ,@body))
+  `(lifoo-define (make-lifoo-word ,id
+                                  :macro? t
+                                  :source ',body
+                                  :fn (lambda (,in ,out)
+                                        ,@body))
                  :exec (or ,exec *lifoo*)))
 
-(defmacro do-lifoo ((&key (env t) exec) &body body)
+(defmacro do-lifoo ((&key exec) &body body)
   "Runs BODY in EXEC"
-  `(with-lifoo (:exec (or ,exec *lifoo* (make-lifoo))
-                :env ,env)
-     (lifoo-eval ',body)
+  `(with-lifoo (:exec (or ,exec *lifoo* (make-lifoo)))
+     (lifoo-eval ',body :throw? nil)
      (lifoo-pop)))
 
-(defun lifoo-eval (expr &key (exec *lifoo*))
+(defmacro do-lifoo-call ((word &key exec) &body body)
+  "Wraps word-calling infrastructure around body"
+  (with-symbols (_w)
+    `(with-lifoo (:exec (or ,exec *lifoo*))
+       (let ((,_w ,word))
+         (when (trace? ,_w)
+           (push (list :enter (id ,_w) (lifoo-stack))
+                 (logs *lifoo*)))
+         ,@body
+         (when (trace? ,_w)
+           (push (list :exit (id ,_w) (lifoo-stack))
+                 (logs *lifoo*)))))))
+
+(defun lifoo-eval (expr &key (exec *lifoo*) (throw? t))
   "Returns result of parsing and evaluating EXPR in EXEC"
   (with-lifoo (:exec exec)
-    (handler-case
-        (eval `(progn ,@(lifoo-compile expr)))
-      (lifoo-throw (c)
-        (lifoo-error "thrown value not caught: ~a" (value c))))))
+      (let* ((fn? (functionp expr))
+             (code (unless fn? `(progn ,@(lifoo-compile expr)))))
+        (if throw?
+            (if fn? (funcall expr) (eval code))
+            (handler-case
+                (if fn? (funcall expr) (eval code))
+              (lifoo-throw (c)
+                (lifoo-error "thrown value not caught: ~a"
+                             (thrown c))))))))
 
 (defun lifoo-compile (forms &key (exec *lifoo*))
   "Parses EXPR and returns code for EXEC"
@@ -184,45 +204,68 @@ The following definitions have been hand-picked for their illustrative value, th
      (cons (cons f `(lifoo-push t)) in))
     ((or (and (symbolp f) (not (keywordp f)))
          (lifoo-word-p f))
-     (lifoo-expand f in))
+     (lifoo-expand-call f in))
+    ((functionp f)
+     (cons (cons f `(funcall ,f)) in))
     (t
      (cons (cons f `(lifoo-push ,f)) in))))
 
-(defun lifoo-expand (in out)
+(defun lifoo-expand-call (in out)
   "Expands IN into OUT and returns new token stream"
-  (let ((word (lifoo-word in)))
+  (let ((word (lifoo-macro in :error? nil)))
     (if word
-        (if (macro? word)
-            (let ((exp (funcall (fn word) in out)))
-              (cons (cons (first (first exp)) 
-                          `(do-lifoo-call ((lifoo-word ',in))
-                               ,(rest (first exp))))
-               (rest exp)))
-            (progn
-              (when (args word) (lifoo-compile-args word out))
-              (cons (cons in `(lifoo-call ',in)) out)))
-        (cons (cons in `(lifoo-call ',in))
-              out))))
+        (let ((exp (funcall (fn word) in out)))
+          (cons
+           (cons (first (first exp)) 
+                 `(do-lifoo-call (,word)
+                    ,(rest (first exp))))
+           (rest exp)))
+        (cons (cons in `(lifoo-call ',in)) out))))
+
+(defun lifoo-macro (id &key (error? t) (exec *lifoo*))
+  "Returns MACRO from EXEC, or NIL if missing"
+  (if (lifoo-word-p id)
+      (when (macro? id) id)
+      (let* ((found
+               (index-first (words exec)
+                            :key (make-word-key (keyword! id) t)))
+             (word (rest (first found))))
+        (when (and (null found) error?)
+          (error "missing macro: ~a ~a" id word))
+        (when (macro? word) word))))
 
 (defun lifoo-call (word &key (exec *lifoo*))
   "Calls WORD in EXEC"
-
   (unless (lifoo-word-p word)
     (let ((id word))
-      (unless (setf word (lifoo-word id))
-        (error "missing word: ~a" id)))) 
+      (setf word (lifoo-word id)))) 
 
   (do-lifoo-call (word :exec exec)
     (funcall (lifoo-compile-word word))))
 
-(defun lifoo-compile-word (word &key (exec *lifoo*) speed)
-  "Makes sure word is compiled and returns function"
-  (or (fn word)
-      (setf (fn word)
-            (eval `(lambda ()
-                     ,(lifoo-optimize :speed speed)
-                     ,@(lifoo-compile (source word)
-                                      :exec exec))))))
+(defun lifoo-word (word &key (error? t)
+                             (exec *lifoo*)
+                             (stack (map 'vector
+                                         #'lifoo-val
+                                         (stack exec))))
+  "Returns WORD from EXEC, or NIL if missing"
+  (if (lifoo-word-p word)
+      word
+      (let* ((id (keyword! word))
+             (start (index-first (words exec)
+                                 :key (make-word-key id nil)))
+             (found
+               (do ((it start (rest it)))
+                   ((or (null it)
+                        (not (eq (id (rest (first it))) id))))
+                 (let ((word (rest (first it))))
+                   (when (or (macro? word)
+                             (funcall (type-checker word) stack))
+                     (return word))))))
+          
+        (when (and (null found) error?)
+          (error "missing word: ~a ~a" word (rest (first start))))
+        found)))
 ```
 
 ### repl
@@ -252,7 +295,7 @@ Lifoo>
   (format out "press enter on empty line to evaluate,~%")
   (format out "exit ends session~%")
   
-  (with-lifoo (:exec exec :env t)
+  (with-lifoo (:exec exec)
     (tagbody
      start
        (format out "~%Lifoo> ")
@@ -270,10 +313,9 @@ Lifoo>
            (restart-case
                (progn
                  (lifoo-reset)
-                 (lifoo-eval (lifoo-read :in in))
+                 (lifoo-eval (lifoo-read :in in) :throw? nil)
                  (write (lifoo-pop) :stream out)
                  (terpri out))
-             
              (ignore ()
                :report "Ignore error and continue.")))
          (go start))
@@ -284,7 +326,7 @@ Lifoo>
 Stack tracing takes on a whole new meaning in Forth, Lifoo offers integrated tracing to help untangle messy stacks.
 
 ```
-Lifoo> :+ trace
+Lifoo> (number number) :+ word trace
 
 NIL
 
@@ -296,7 +338,7 @@ Lifoo> 1 2 +
 
 3
 
-Lifoo> t untrace
+Lifoo> untrace
 
 NIL
 

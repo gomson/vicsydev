@@ -12,29 +12,42 @@ Implementing general purpose transactional memory as a library is impossible, th
 Lifoo provides memory transactions that track updates to the stack, any place that can be [set](https://github.com/codr4life/vicsydev/blob/master/consing_forth.md#setf) or [deleted](https://github.com/codr4life/vicsydev/blob/master/consing_forth.md#del); and the word dictionary; which is pretty much everything as far as [Lifoo](https://github.com/codr4life/lifoo) is concerned. Since [Lifoo](https://github.com/codr4life/lifoo) uses separate runtime instances and channels for multi-threaded programming, and has no need for protecting against memory corruption; it simply logs lambdas to be run in the case of a rollback. Transactions may be committed and rolled back several times during their lives, and are reset each time.
 
 ```
-;; Roll back changes to stack
+;; Roll back changes to stack;
+;; @ pre-compiles block to Lisp lambda.
+
 Lifoo> 1 2 (3 4 rollback)@ trans stack
 
 (2 1)
 
-;; Add commit before rollback
+;; Add commit before rollback;
+;; STACK returns all elements on the stack.
+
 Lifoo> 1 2 (3 4 commit 5 6 rollback)@ trans stack
 
 (4 3 2 1)
 
-;; Roll back delete from hash table
+;; Roll back delete from hash table;
+;; hash table takes a source as parameter,
+;; in this case an assoc list;
+;; GET marks the spot and DEL does the JOB.
+
 Lifoo>  ((1 . :foo) (2 . :bar)) hash
-    (1 get del rollback)@ trans
-    list nil sort
+        (1 get del rollback)@ trans
+        list nil sort
 
 ((1 . :FOO) (2 . :BAR))
 
-;; Roll back word definition
+;; Roll back word (re-)definition,
+;; uses DROP to skip arguments since it's already
+;; made up it's mind.
+
 Lifoo> ((drop drop 42)@ (number number) :+ define rollback)@ trans
        1 2 +
 
 3
 
+;; The implementation of SET simply logs lambdas to
+;; the current transaction, if any.
 
 (define-lisp-word :set (t) ()
   (let* ((val (lifoo-pop))

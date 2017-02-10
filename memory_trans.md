@@ -3,7 +3,7 @@
 posted Feb 9th 2017, 10:00 pm
 
 ### preramble
-Transactional memory is most often mentioned in the context of multi-threaded programming, where the reason the system tracks memory access is to prevent corruption. Another kind of transactional memory is the database, SQL or otherwise; one of the main reasons they exist is to provide transactions over data. Transactions are useful in many contexts where they are not commonly used, [transactional collections](https://github.com/codr4life/cl4l#indexes) offer a nice compromise between primitive collections and databases.
+Transactional memory is most often mentioned in the context of multi-threaded programming, where the reason the system tracks memory access is to prevent corruption. Another kind of transactional memory is the database, SQL or otherwise; one of the main reasons they exist is to provide transactions over data. Transactions are useful in many contexts where they are not commonly used; [transactional collections](https://github.com/codr4life/cl4l#indexes) offer a nice compromise between primitive collections and databases, and any undo facility should track change sets rather than individual changes.
 
 ### embedded languages
 Implementing general purpose transactional memory as a library is impossible, there's just no way to hook into the system deep enough to capture all possibilities; you end up replacing every single part of the language that is covered. One of the ideas with embedding more restricted languages like [Lifoo](https://github.com/codr4life/lifoo) into more powerful host languages like Common Lisp is the increased leverage you get from controlling the box from the outside.

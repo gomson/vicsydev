@@ -37,6 +37,23 @@ Lifoo>  ((1 . :foo) (2 . :bar)) hash
 
 ((1 . :FOO) (2 . :BAR))
 
+;; Define new struct with two fields,
+;; BAR defaults to -1.
+
+Lifoo> ((bar -1) baz) :foo struct
+
+NIL
+
+;; Rollback struct update;
+;; constructors take an assoc list as source.
+
+Lifoo> (:bar 41) make-foo
+       (foo-bar 42 set drop commit
+        foo-bar 43 set rollback) trans
+       foo-bar
+
+42
+
 ;; Roll back word (re-)definition,
 ;; uses DROP to skip arguments since it's already
 ;; made up it's mind.

@@ -141,7 +141,7 @@ Lifoo> clear :bar var 42 set env
 ```
 
 ### del
-One thing Python got right was providing an extendable protocol for deletion. Separating concerns into pieces of generic functionality like that is what enables exponential power gains. Lifoo provides a ```del``` word that works like ```set``` but deletes places instead.
+One thing Python got right was providing an extendable protocol for deletion. Separating concerns into independent pieces of generic functionality enables exponential power gains. Lifoo provides a ```del``` word that works like ```set``` but deletes places instead.
 
 ```
 Lifoo> (1 2 3) 1 nth del

@@ -115,7 +115,7 @@ Lifoo> #(1 2 3) 1 nth 4 set drop
 
 #(1 4 3)
 
-Lifoo> nil hash :foo 42 put list
+Lifoo> nil hash :foo 42 put drop list
 
 ((:FOO . 42))
 

@@ -2,10 +2,10 @@
 posted Feb 11th 2017, 02:00 am
 
 ### preramble
-I've often dreamt of being able to implement green threads, exceptions and more from user code without pulling my hair out in the process. There are so many ideas I would like to play around with, so much room for exploration. Unfortunately, most languages fail to even make this possible; fewer still make it easy.
+I've often dreamt of being able to implement green threads, exceptions and more from user code without pulling my hair out in the process. There are so many ideas I would like to play around with, so much room for exploration. One of the ideas I've been playing around with is implementing faster throw and catch using jump tables. Unfortunately, most languages fail to even make this possible; and fewer still make it easy.
 
 ### Lisp
-Even Common Lisp, the supposed king of customisation; fails the test on purpose by making general purpose code translation too difficult. Wrapping code around forms is fine; but as soon as you need to transform unknown code on statement level, it quickly turns into a [tar pit](http://quickdocs.org/cl-cont/api).
+Even Common Lisp, the supposed king of customisation; fails the test by making general purpose code translation too difficult. Wrapping code around forms is fine; but as soon as the need to transform unknown code on statement level arises, it turns into a [tar pit](http://quickdocs.org/cl-cont/api).
 
 ### [Lifoo](https://github.com/codr4life/lifoo)
 One advantage of simple syntax is that it makes it easier to pull these kinds of tricks. And one advantage of writing an [embedded Forth](https://github.com/codr4life/lifoo) with macro support that compiles to linear Lisp code is that we finally get a chance to beat exceptions using jump tables, without the ceremony.
@@ -53,7 +53,7 @@ Lifoo> ((:frisbee throw :fail) catch) compile
 ```
 
 ### performance
-Unfortunately, an embedded language will seldom be as fast as it's host language; beating raw Lisp conditions in Lifoo is not happening. But since Lifoo provides a bridge to Lisp conditions, renamed to "signals"; it's still possible to compare the different approaches, all else being mostly equal. 
+Unfortunately, an embedded language will seldom be as fast as it's host language; beating raw Lisp conditions in Lifoo is not happening. But since Lifoo provides a bridge to Lisp conditions, called "signals" in Lifoo speak; it's still possible to compare the different approaches, all else being mostly equal. 
 
 ```
 LIFOO> (cl4l-test:run-suite '(:lifoo :throw :perf) :warmup 10 

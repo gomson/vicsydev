@@ -1,5 +1,4 @@
 # [vicsy/dev](https://github.com/codr4life/vicsydev) | Transactional memory in Lispy Forth
-
 posted Feb 9th 2017, 10:00 pm
 
 ### preramble

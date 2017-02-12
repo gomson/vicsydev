@@ -1,4 +1,4 @@
-# [vicsy/dev](https://github.com/codr4life/vicsydev) | Faster exceptions in Lispy Forth
+# [vicsy/dev](https://github.com/codr4life/vicsydev) | Faster exceptions with Lispy Forth
 posted Feb 11th 2017, 02:00 am
 
 ### preramble

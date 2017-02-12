@@ -69,10 +69,10 @@ Unfortunately, embedded languages are seldom as fast as their hosts; beating raw
 ```
 LIFOO> (cl4l-test:run-suite '(:lifoo :throw :perf) :warmup 10 
                                                    :reps 10000)
-(lifoo throw perf)            9.644
-(lifoo throw perf lisp)       0.072
-(lifoo throw perf signal)     8.796
-TOTAL                         18.51
+(lifoo throw perf)            15.77
+(lifoo throw perf lisp)       0.076
+(lifoo throw perf signal)     16.82
+TOTAL                         32.67
 
 
 (define-test (:lifoo :throw :perf)
@@ -111,7 +111,7 @@ TOTAL                         18.51
 ```
 
 ### conclusion
-So there you have it; wrapping code in jump tables with checks between statements seems comparable to exceptions for short blocks; I know I'll sleep better. This also gives a hint of the worst case performance ratio between Lifoo and Lisp right now; around 100x slower.
+So there you have it; wrapping code in jump tables with checks between statements seems comparable to exceptions for short blocks; I know I'll sleep better. This also gives a hint of the worst case performance ratio between Lifoo and Lisp right now; around 200x slower.
 
 You may find more in the same spirit [here](http://vicsydev.blogspot.de/) and [here](https://github.com/codr4life/vicsydev), and a full implementation of this idea and more [here](https://github.com/codr4life).
 

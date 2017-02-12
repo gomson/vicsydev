@@ -31,7 +31,7 @@ Lifoo> (1 2 +) compile link
 
 #<FUNCTION {1003F99E8B}>
 
-Lifoo> (1 2 +) compile link eval
+Lifoo> (1 2 +) compile link call
 
 3
 
@@ -60,12 +60,11 @@ Lifoo> ((bar -1) baz) :foo struct
 
 T
 
-Lifoo> ((:frisbee throw
-         "skipped" print ln)
-        (:always) always)
-       (drop) catch
+Lifoo> (:frisbee throw
+        "fail" error)
+       catch
 
-:ALWAYS
+:FRISBEE
 
 Lifoo> 0 chan 
        (1 2 + send :done)@ 1 spawn swap 
@@ -104,172 +103,8 @@ Forth likes to call functions words, and Lifoo keeps with that tradition. Lifoo 
         (rest out))))
 ```
 
-### implementation
-The following definitions have been hand-picked for their illustrative value, the full implementation of Lifoo currently weighs in at around 400 lines excluding word definitions.
-
-```
-
-(defmacro define-word (id args (&key exec) &body body)
-  "Defines new word with ID in EXEC from BODY"
-  `(lifoo-define (make-lifoo-word ,id
-                                  :args ',args
-                                  :source ',body)
-                 :exec (or ,exec *lifoo*)))
-
-(defmacro define-lisp-word (id args (&key exec speed) &body body)
-  "Defines new word with NAME in EXEC from Lisp forms in BODY"
-  `(lifoo-define
-    (make-lifoo-word ,id
-                     :args ',args
-                     :source ',body
-                     :fn (lambda ()
-                           ,(lifoo-optimize :speed speed)
-                           ,@body))
-    :exec (or ,exec *lifoo*)))
-
-(defmacro define-macro-word (id (in out &key exec)
-                             &body body)
-  "Defines new macro word NAME in EXEC from Lisp forms in BODY"
-  `(lifoo-define (make-lifoo-word ,id
-                                  :macro? t
-                                  :source ',body
-                                  :fn (lambda (,in ,out)
-                                        ,@body))
-                 :exec (or ,exec *lifoo*)))
-
-(defmacro do-lifoo ((&key exec) &body body)
-  "Runs BODY in EXEC"
-  `(with-lifoo (:exec (or ,exec *lifoo* (make-lifoo)))
-     (lifoo-eval ',body :throw? nil)
-     (lifoo-pop)))
-
-(defmacro do-lifoo-call ((word &key exec) &body body)
-  "Wraps word-calling infrastructure around body"
-  (with-symbols (_w)
-    `(with-lifoo (:exec (or ,exec *lifoo*))
-       (let ((,_w ,word))
-         (when (trace? ,_w)
-           (push (list :enter (id ,_w) (lifoo-stack))
-                 (logs *lifoo*)))
-         ,@body
-         (when (trace? ,_w)
-           (push (list :exit (id ,_w) (lifoo-stack))
-                 (logs *lifoo*)))))))
-
-(defun lifoo-eval (expr &key (exec *lifoo*) (throw? t))
-  "Returns result of parsing and evaluating EXPR in EXEC"
-  (with-lifoo (:exec exec)
-      (let* ((fn? (functionp expr))
-             (code (unless fn? `(progn ,@(lifoo-compile expr)))))
-        (if throw?
-            (if fn? (funcall expr) (eval code))
-            (handler-case
-                (if fn? (funcall expr) (eval code))
-              (lifoo-throw (c)
-                (lifoo-error "thrown value not caught: ~a"
-                             (thrown c))))))))
-
-(defun lifoo-compile (forms &key (exec *lifoo*))
-  "Parses EXPR and returns code for EXEC"
-  (labels ((compile-forms (in out)
-             (if in
-                 (let ((f (first in)))
-                   (compile-forms (rest in)
-                                  (lifoo-compile-form f out)))
-                 (mapcar #'rest (nreverse out)))))
-    (with-lifoo (:exec exec)
-      (compile-forms (list! forms) nil))))
-
-(defun lifoo-compile-form (f in)
-  "Compiles form F for token stream IN and returns new stream"
-  (cond
-    ((simple-vector-p f)
-     (let ((len (length f)))
-       (cons (cons f `(lifoo-push
-                          ,(make-array
-                            len
-                            :adjustable t
-                            :fill-pointer len
-                            :initial-contents f)))
-             in)))
-    
-    ((consp f)
-     (if (consp (rest f))
-         (cons (cons f `(lifoo-push ',(copy-list f))) in)
-         (cons (cons f `(lifoo-push ',(cons (first f) (rest f))))
-               in)))
-    ((null f)
-     (cons (cons f `(lifoo-push nil)) in))
-    ((eq f t)
-     (cons (cons f `(lifoo-push t)) in))
-    ((or (and (symbolp f) (not (keywordp f)))
-         (lifoo-word-p f))
-     (lifoo-expand-call f in))
-    ((functionp f)
-     (cons (cons f `(funcall ,f)) in))
-    (t
-     (cons (cons f `(lifoo-push ,f)) in))))
-
-(defun lifoo-expand-call (in out)
-  "Expands IN into OUT and returns new token stream"
-  (let ((word (lifoo-macro in :error? nil)))
-    (if word
-        (let ((exp (funcall (fn word) in out)))
-          (cons
-           (cons (first (first exp)) 
-                 `(do-lifoo-call (,word)
-                    ,(rest (first exp))))
-           (rest exp)))
-        (cons (cons in `(lifoo-call ',in)) out))))
-
-(defun lifoo-macro (id &key (error? t) (exec *lifoo*))
-  "Returns MACRO from EXEC, or NIL if missing"
-  (if (lifoo-word-p id)
-      (when (macro? id) id)
-      (let* ((found
-               (index-first (words exec)
-                            :key (make-word-key (keyword! id) t)))
-             (word (rest (first found))))
-        (when (and (null found) error?)
-          (error "missing macro: ~a ~a" id word))
-        (when (macro? word) word))))
-
-(defun lifoo-call (word &key (exec *lifoo*))
-  "Calls WORD in EXEC"
-  (unless (lifoo-word-p word)
-    (let ((id word))
-      (setf word (lifoo-word id)))) 
-
-  (do-lifoo-call (word :exec exec)
-    (funcall (lifoo-compile-word word))))
-
-(defun lifoo-word (word &key (error? t)
-                             (exec *lifoo*)
-                             (stack (map 'vector
-                                         #'lifoo-val
-                                         (stack exec))))
-  "Returns WORD from EXEC, or NIL if missing"
-  (if (lifoo-word-p word)
-      word
-      (let* ((id (keyword! word))
-             (start (index-first (words exec)
-                                 :key (make-word-key id nil)))
-             (found
-               (do ((it start (rest it)))
-                   ((or (null it)
-                        (not (eq (id (rest (first it))) id))))
-                 (let ((word (rest (first it))))
-                   (when (or (macro? word)
-                             (funcall (type-checker word) stack))
-                     (return word))))))
-          
-        (when (and (null found) error?)
-          (error "missing word: ~a ~a" word (rest (first start))))
-        found)))
-```
-
 ### repl
-Writing a basic REPL is trivial given above implementation.
+Lifoo provides a basic REPL, the implementation is provided as an example of how to integrate Lifoo into Lisp code.
 
 ```
 LIFOO> (lifoo:lifoo-repl)
@@ -350,15 +185,13 @@ Lifoo> 3 4 +
 
 7
 
-Lifoo> print-log
+Lifoo> print-trace
 
 LOG   Nothing is traced from here
 EXIT  + #(3)
 ENTER + #(1 2)
 LOG   Every :+ entry and exit is traced from here
 NIL
-
-Lifoo>
 ```
 
 You may find more in the same spirit [here](http://vicsydev.blogspot.de/) and [here](https://github.com/codr4life/vicsydev), and a full implementation of this idea and more [here](https://github.com/codr4life).

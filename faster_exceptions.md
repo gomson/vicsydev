@@ -2,7 +2,7 @@
 posted Feb 11th 2017, 02:00 am
 
 ### preramble
-I've often dreamt of being able to implement green threads, exceptions and more from user code without pulling my hair out in the process. There are so many ideas I would like to play around with, so much room for exploration. One of the ideas I've been playing around with is implementing throw and catch using jump tables. Unfortunately, most languages fail to even make this possible; and fewer still make it easy. This post describes an implementation of this idea in [Lispy Forth](https://github.com/codr4life/lifoo).
+I've often dreamt of being able to implement green threads, exceptions and more from user code without pulling my hair out in the process. There are so many ideas I would like to play around with when it comes to flow control, so much room for exploration. One of the ideas I've been playing around with is implementing throw and catch using jump tables. Unfortunately, most languages fail to even make this possible; and fewer still make it easy. This post describes an implementation of this idea in [Lispy Forth](https://github.com/codr4life/lifoo).
 
 ### Lisp
 Even Common Lisp, the supposed king of customisation; fails the test by making general purpose code translation too difficult. Wrapping code around forms is fine; but as soon as the need to transform unknown code on statement level arises, it turns into a [tar pit](http://quickdocs.org/cl-cont/api). 
@@ -52,8 +52,19 @@ Lifoo> ((:frisbee throw :fail) catch) compile
           (rest out))))
 ```
 
+### semantics
+This implementation has the added feature (or bug, depending on perspective) of requiring thrown values to be caught and thrown again inside nested code blocks to get "normal" exception semantics; if not, the code will continue running as usual until it hits a catch scope.
+
+```
+Lifoo> (((:up throw "fail" error) catch throw)@
+        (:always)@ always) 
+       catch cons
+
+(:UP . :ALWAYS)
+```
+
 ### performance
-Unfortunately, embedded languages are seldom as fast as their hosts; beating raw Lisp conditions in [Lifoo](https://github.com/codr4life/lifoo) is not happening any time soon. But since [Lifoo](https://github.com/codr4life/lifoo) provides a bridge to Lisp conditions, called "signals" in [Lifoo](https://github.com/codr4life/lifoo)-speak; it's still possible to compare the different approaches, all else being mostly equal. 
+Unfortunately, embedded languages are seldom as fast as their hosts; beating raw Lisp conditions in [Lifoo](https://github.com/codr4life/lifoo) is not happening any time soon. But since [Lifoo](https://github.com/codr4life/lifoo) provides a bridge to Lisp conditions, called signals in [Lifoo](https://github.com/codr4life/lifoo)-speak; it's still possible to compare the different approaches, all else being mostly equal. 
 
 ```
 LIFOO> (cl4l-test:run-suite '(:lifoo :throw :perf) :warmup 10 
@@ -100,7 +111,7 @@ TOTAL                         31.97
 ```
 
 ### conclusion
-So there you have it; wrapping in jump tables with checks between statements seems comparable to exceptions for short blocks; I know I'll sleep better. This also gives a hint of the worst case performance ratio between Lifoo and Lisp right now; around three hundred times slower.
+So there you have it; wrapping code in jump tables with checks between statements seems comparable to exceptions for short blocks; I know I'll sleep better. This also gives a hint of the worst case performance ratio between Lifoo and Lisp right now; around three hundred times slower.
 
 You may find more in the same spirit [here](http://vicsydev.blogspot.de/) and [here](https://github.com/codr4life/vicsydev), and a full implementation of this idea and more [here](https://github.com/codr4life).
 

@@ -56,7 +56,7 @@ Lifoo> (1 2 3)
 
 (1 2 3)
 
-Lifoo> (1 2 3) (2 *) map
+Lifoo> (1 2 3) (2 *)@ map
 
 (2 4 6)
 
@@ -68,7 +68,13 @@ Lifoo> (1 2 3) (2 *)@ map
 
 (2 4 6)
 
-Lifoo> ((1 2 +) (3 4 +) (5 6 +)) (eval) map
+Lifoo> ((1 2 +) (3 4 +) (5 6 +)) (eval)@ map
+
+(3 7 11)
+
+Lifoo> (1 2 +)@ (3 4 +)@ (5 6 +)@
+       3 list
+       (call)@ map
 
 (3 7 11)
 ```
@@ -124,20 +130,37 @@ Lifoo> clear :bar var 42 set env
 ((:BAR . 42))
 
 
-(define-lisp-word :set (t) ()
-  (let* ((val (lifoo-pop))
-         (cell (lifoo-peek-cell))
-         (set (lifoo-set cell)))
-    (unless set
-      (error "missing set: ~a" val))
-    (when-let (trans (lifoo-trans :exec exec))
-      (let ((prev (lifoo-val cell)))
-        (push (lambda ()
-                (funcall set prev)
-                (setf (lifoo-val cell) val))
-              (on-rollback trans))))
-    (funcall set val)
-    (setf (lifoo-val cell) val)))
+(define-lisp-word :nth (integer) (:speed 1)
+  (let* ((idx (lifoo-pop))
+         (seq (lifoo-peek))
+         (it (elt seq idx)))
+    (lifoo-push
+     it
+     :set (lambda (val)
+            (setf (elt seq idx) val))
+     :del (lambda ()
+            (lifoo-pop)
+            (lifoo-push (remove-nth
+                         idx
+                         seq))))))
+
+(define-lisp-word :set (t) (:speed 1)
+  (let ((val (lifoo-pop)))
+    (setf (lifoo-val (lifoo-peek-cell) :exec *lifoo*) val)))
+
+
+(defstruct (lifoo-cell (:conc-name cell-))
+  val set del)
+
+(defun (setf lifoo-val) (val cell &key (exec *lifoo*))
+  (when-let (trans (lifoo-trans :exec exec))
+    (let ((prev (cell-val cell)))
+      (push (lambda ()
+              (setf (lifoo-val cell :exec exec) prev))
+            (on-rollback trans))))
+  (when-let (set (cell-set cell))
+    (funcall set val))
+  (setf (cell-val cell) val))
 ```
 
 ### del
@@ -157,7 +180,7 @@ Lifoo> ((:foo . 1) (:bar . 2)) hash :foo get del drop list
 ((:BAR . 2))
 
 
-(define-lisp-word :del (t) ()
+(define-lisp-word :del (t) (:speed 1)
   (let* ((cell (lifoo-peek-cell))
          (val (lifoo-val cell))
          (del (lifoo-del cell)))
@@ -165,7 +188,7 @@ Lifoo> ((:foo . 1) (:bar . 2)) hash :foo get del drop list
       (error "missing del: ~a" val))
     (when-let (trans (lifoo-trans :exec exec))
       (push (lambda ()
-              (funcall (lifoo-set cell) val))
+              (setf (lifoo-val cell :exec exec) val))
             (on-rollback trans)))
     (funcall del)))
 ```
@@ -196,14 +219,6 @@ Lifoo> (define-lifoo-init (:foo :bar)
 42
 
 
-(define-macro-word :@@ (in out)
-  (cons (cons in
-            `(lifoo-push (lambda ()
-                           (lifoo-optimize)
-                           ,(first (first out)))))
-      (rest out)))
-      
-      
 (defmacro define-lifoo-init (tags &body body)
   "Defines init for TAGS around BODY"
   `(setf (gethash ',tags *lifoo-init*)
@@ -233,35 +248,35 @@ Lifoo> (:bar 42) make-foo
 43
 
 
-(define-lisp-word :struct ()
-  (let ((fields (lifoo-pop))
-        (name (lifoo-pop)))
-    (define-lifoo-struct name fields)))
+(define-lisp-word :struct (symbol list) ()
+  (let ((name (lifoo-pop))
+        (fields (lifoo-pop)))
+    (define-lifoo-struct name (gensym) fields)))
 
 
-(defmacro define-lifoo-struct (name fields)
+(defmacro define-lifoo-struct (name lisp-name fields)
   "Defines struct NAME with FIELDS"
   `(progn
-     (let ((lisp-name (gensym))
+     (let ((_lisp-name ,lisp-name)
            (fs ,fields))
-       (eval `(defstruct (,lisp-name)
+       (eval `(defstruct (,_lisp-name)
                 ,@fs))
        (define-lifoo-struct-fn
            (keyword! 'make- ,name)
            ()
-         (symbol! 'make- lisp-name)
+         (symbol! 'make- _lisp-name)
          (lifoo-pop))
        (define-lifoo-struct-fn
            (keyword! ,name '?)
            (t)
-         (symbol! lisp-name '-p)
+         (symbol! _lisp-name '-p)
          (list (lifoo-peek)))
        (dolist (f fs)
          (let ((fn (if (consp f) (first f) f)))
            (define-lifoo-struct-fn
                (keyword! ,name '- fn)
                (t)
-             (symbol! lisp-name '- fn)
+             (symbol! _lisp-name '- fn)
              (list (lifoo-peek))
              :set? t))))))
 
@@ -282,7 +297,7 @@ Lifoo> (:bar 42) make-foo
 ```
 
 ### macros
-Once token streams come on silver plates, it's really hard to resist the temptation of going all in with macros. What I ended up with is essentially Lisp macros with a touch of Forth. Like Lisp, Lifoo macros operate on streams of tokens. But since Forth is post-fix; macros deal with previously parsed, rather than wrapped, tokens. Lifoo provides macro words that are called to translate the token stream when code is parsed. A token stream consists of pairs of tokens and generated code, and the result of a macro call replaces the token stream from that point on. 
+Once token streams come on silver plates, it's really hard to resist the temptation of going all in with macros. What I ended up with is essentially Lisp macros with a touch of Forth. Like Lisp, Lifoo macros operate on streams of tokens. But since Forth is post-fix; macros deal with previously parsed, rather than wrapped tokens. Lifoo provides macro words that are called to translate the token stream when code is parsed. A token stream consists of pairs of tokens and generated code, and the result of a macro call replaces the token stream from that point on. 
 
 ```
 Lifoo> (number number) :+ word macro?
@@ -304,22 +319,24 @@ Lifoo> (+ 1 2)@
 Lifoo> ((+ 1 2)@) compile
 
 (PROGN
-        (DO-LIFOO-CALL ([macro word: @])
-          (LIFOO-PUSH
-           (LAMBDA ()
-             (LIFOO-OPTIMIZE)
-             (LIFOO-CALL '+)
-             (LIFOO-PUSH 1)
-             (LIFOO-PUSH 2)))))
+        (LIFOO-PUSH
+         (LAMBDA ()
+           (DECLARE (OPTIMIZE (SPEED 3) (SAFETY 0) (DEBUG 0)))
+           (LIFOO-CALL [word: + (number number)])
+           (LIFOO-PUSH 1)
+           (LIFOO-PUSH 2))))
 
 
 (define-macro-word :@ (in out)
-  (cons (cons in
-            `(lifoo-push (lambda ()
-                           (lifoo-optimize)
-                           ,@(lifoo-compile
-                              (first (first out))))))
-        (rest out)))
+  (declare (ignore in))
+  (let ((f (first out)))
+    (cons (cons (first f)
+                `(lifoo-push (lambda ()
+                               ,(lifoo-optimize
+                                 :speed (lambda-speed *lifoo*))
+                               ,@(lifoo-compile
+                                  (first (first out))))))
+          (rest out))))
 
 
 (defmacro define-macro-word (id (in out &key exec)

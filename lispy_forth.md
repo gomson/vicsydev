@@ -86,6 +86,21 @@ Lifoo> (lifoo-push (concatenate 'string
 Forth likes to call functions words, and Lifoo keeps with that tradition. Lifoo comes with a modest but growing, modular set of built-in words. Words can be defined in either Lisp or Lifoo; functions for defining, looking up and un-defining words are also provided. 
 
 ```
+Lifoo> (:foo cons)@ () :foo define
+       :bar foo
+       () :foo word undefine
+
+(:FOO . :BAR)
+
+Lifoo> (lifoo-push (concatenate 'string
+                                (lifoo-pop)
+                                (lifoo-pop)))@@
+       (string string) :+ define
+       "def" "abc" + dynamic 1 2 + cons
+
+(3 . "abcdef")
+
+
 (define-word :array (hash-table) ()
   list array)
 
@@ -95,12 +110,15 @@ Forth likes to call functions words, and Lifoo keeps with that tradition. Lifoo 
     (lifoo-push (compare lhs rhs))))
 
 (define-macro-word :@ (in out)
-  (cons (cons in
-            `(lifoo-push (lambda ()
-                           (lifoo-optimize)
-                           ,@(lifoo-compile
-                              (first (first out))))))
-        (rest out))))
+  (declare (ignore in))
+  (let ((f (first out)))
+    (cons (cons (first f)
+                `(lifoo-push (lambda ()
+                               ,(lifoo-optimize
+                                 :speed (lambda-speed *lifoo*))
+                               ,@(lifoo-compile
+                                  (first (first out))))))
+          (rest out)))))
 ```
 
 ### repl

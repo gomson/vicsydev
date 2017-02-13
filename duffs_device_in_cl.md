@@ -22,20 +22,20 @@ Lifoo> 41 1 (1 task-yield +) task
 
 Lifoo> 42 1 (1 task-yield +) task source
 
-((WHEN (AND (< #:G2537 1) (NOT (TASK-YIELDING? #:G2536)))
-          (SETF (TASK-LINE #:G2536) 1)
-          (LIFOO-PUSH 1))
- (WHEN (AND (< #:G2537 2) (NOT (TASK-YIELDING? #:G2536)))
-          (SETF (TASK-LINE #:G2536) 2)
-          (IF (FUNCALL (TYPE-CHECKER [word: task-yield nil]) (STACK *LIFOO*))
-              (LIFOO-CALL [word: task-yield nil])
-              (LIFOO-CALL 'TASK-YIELD)))
- (WHEN (AND (< #:G2537 3) (NOT (TASK-YIELDING? #:G2536)))
-          (SETF (TASK-LINE #:G2536) 3)
-          (IF (FUNCALL (TYPE-CHECKER [word: + (number number)])
-                       (STACK *LIFOO*))
-              (LIFOO-CALL [word: + (number number)])
-              (LIFOO-CALL '+))))
+(LET* ((#:G11886 (LIFOO-VAR *TASK*)) (#:G11887 (TASK-LINE #:G11886)))
+         (DECLARE (IGNORABLE #:G11886 #:G11887))
+         (WHEN (AND (< #:G11887 1) (NOT (TASK-YIELDING? #:G11886)))
+           (SETF (TASK-LINE #:G11886) 1)
+           (LIFOO-PUSH 2))
+         (WHEN (AND (< #:G11887 2) (NOT (TASK-YIELDING? #:G11886)))
+           (SETF (TASK-LINE #:G11886) 2)
+           (LIFOO-CALL [word: task-yield nil]))
+         (WHEN (AND (< #:G11887 3) (NOT (TASK-YIELDING? #:G11886)))
+           (SETF (TASK-LINE #:G11886) 3)
+           (IF (FUNCALL (TYPE-CHECKER [word: + (number number)])
+                        (STACK *LIFOO*))
+               (LIFOO-CALL [word: + (number number)])
+               (LIFOO-CALL '+))))
 
 Lifoo> 38 
        1 (inc task-yield inc) task drop

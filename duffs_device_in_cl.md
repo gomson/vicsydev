@@ -8,7 +8,7 @@ It's a shame that many programming languages fail to provide wholehearted suppor
 One popular urban myth in Common Lisp circles is that green threads bring nothing to the table since it's preemptive threads are fast enough; which misses the point that cooperative scheduling is a useful, complementary approach to structuring software; as long as performance is at least comparable; and as an added bonus, the performance profile is more consistent and predictable than for preemptive threads.
 
 ### Duff's Device
-In C, it's popular to build green threads on top of ```switch``` interleaved with user code; known as Duff's Device. The approach unfortunately doesn't play well with the compiler and requires serious hacks to be usable. Implementing the same idea in Lisp takes some imagination, as there is nothing comparable to ```switch```; ```tag-body``` requires clear text labels for jumping, no run-time look up is possible; and ```case``` doesn't allow fall-through, which is crucial. Branching around each statement is a possibility, Common Lisp compilers are pretty hard core when it comes to optimisation, which means it's possible to get away with it; but modifying unknown Lisp code on statement level is a tar pit.
+In C, it's popular to build green threads on top of ```switch``` interleaved with user code; known as Duff's Device. The approach unfortunately doesn't play well with the compiler and requires serious hacks to be usable. Implementing the same idea in Lisp takes some imagination, as there is nothing comparable to ```switch```; ```tag-body``` needs jump labels in clear text; and ```case``` doesn't allow fall-through, which is crucial. Branching around each statement is a possibility, Common Lisp compilers are pretty hard core when it comes to optimisation, which means it's possible to get away with it; but modifying unknown Lisp code on statement level is a [tar pit](http://quickdocs.org/cl-cont/api).
 
 ### Forth
 Writing code Forth style allows painless statement level translation because of the simple, linear syntax. That's one of the reasons I chose Forth as the basis of [Lifoo](https://github.com/codr4life/lifoo), a new Forth-based language fused with Common Lisp that I'm working on. By standing on the shoulders of [Lifoo](https://github.com/codr4life/lifoo), we finally get enough leverage to implement the idea in a reasonable amount of reasonable code.
@@ -179,13 +179,12 @@ Lifoo> 40 1 ((task-yield inc)@ call 1 +) task
 ```
 
 ### performance
-As of right now, threads and cooperative tasks are comparable in Lifoo when it comes to performance; but there is plenty more low hanging fruit left in the task code path. ```cl4l:*cl4l-speed*``` may be set to a value between 1 and 3 to optimize most of the code involved in one go.
+As of right now, cooperative tasks are around 20x faster than preemptive threads in Lifoo; but there is plenty more low hanging fruit left in the task code path. ```cl4l:*cl4l-speed*``` may be set to a value between 1 and 3 to optimize most of the code involved in one go.
 
 ```
-CL-USER> (cl4l-test:run-suite '(:lifoo :task :perf) :reps 10)
-(lifoo task perf)             1.292
-(lifoo task spawn perf)       3.052
-TOTAL                         4.344
+(lifoo task perf)             0.672
+(lifoo task spawn perf)       10.65
+TOTAL                         11.32
 
 (define-test (:lifoo :task :perf)
   (lifoo-asseq 0

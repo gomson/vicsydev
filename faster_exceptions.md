@@ -2,7 +2,7 @@
 posted Feb 11th 2017, 02:00 am
 
 ### preramble
-I've often dreamt of being able to implement green threads, exceptions and more from user code without pulling my hair out in the process. There are so many ideas I would like to play around with when it comes to flow control, so much room for exploration. One of the ideas I've been playing around with is implementing throw and catch using jump tables. Unfortunately, most languages fail to even make this possible; and fewer still make it easy. This post describes an implementation of this idea in [Lispy Forth](https://github.com/codr4life/lifoo).
+I've often dreamt of being able to implement green threads, exceptions and more from user code without pulling my hair out in the process. There are so many ideas I would like to play around with when it comes to flow control, so much room for exploration. One of the ideas I've been playing around with is implementing throw and catch using regular branching. Unfortunately, most languages fail to even make this possible; and fewer still make it easy. This post describes an implementation of this idea in [Lispy Forth](https://github.com/codr4life/lifoo).
 
 ### Lisp
 Even Common Lisp, the supposed king of customisation; fails the test by making general purpose code translation too difficult. Wrapping code around forms is fine; but as soon as the need to transform unknown code on statement level arises, it turns into a [tar pit](http://quickdocs.org/cl-cont/api). 
@@ -23,32 +23,29 @@ Lifoo> (:frisbee throw :fail) catch
 Lifoo> ((:frisbee throw :fail) catch) compile
 
 (PROGN
-        (TAGBODY
-          (LIFOO-PUSH :FRISBEE)
-          (WHEN (LIFOO-VAR *LIFOO-THROWING*) (GO #:G78818))
-          (LIFOO-CALL [word: throw (t)])
-          (WHEN (LIFOO-VAR *LIFOO-THROWING*) (GO #:G78818))
-          (LIFOO-PUSH :FAIL)
-         #:G78818
-          (LIFOO-PUSH (LIFOO-VAR *LIFOO-THROWING*))
-          (SETF (LIFOO-VAR *LIFOO-THROWING*) NIL)))
-          
-          
+        (PROGN
+         (UNLESS (LIFOO-VAR *THROWING*) (LIFOO-PUSH :FRISBEE))
+         (UNLESS (LIFOO-VAR *THROWING*)
+           (IF (FUNCALL (TYPE-CHECKER [word: throw (t)]) (STACK *LIFOO*))
+               (LIFOO-CALL [word: throw (t)])
+               (LIFOO-CALL 'THROW)))
+         (UNLESS (LIFOO-VAR *THROWING*) (LIFOO-PUSH :FAIL))
+         (LIFOO-PUSH (LIFOO-VAR *THROWING*))
+         (SETF (LIFOO-VAR *THROWING*) NIL)))
+
+
 (define-lisp-word :throw (t) ()
   (setf (lifoo-var *lifoo-throwing*) (lifoo-pop)))
 
 (define-macro-word :catch (in out)
-  (let* ((catch-tag (gensym))
-         (in-code (lifoo-compile (first (first out))))
-         (out-code (apply #'join
-                          `(when (lifoo-var *lifoo-throwing*)
-                             (go ,catch-tag))
-                          in-code)))
-    (cons (cons in `(tagbody
-                       ,@out-code
-                       ,catch-tag
-                       (lifoo-push (lifoo-var *lifoo-throwing*))
-                       (setf (lifoo-var *lifoo-throwing*) nil)))
+  (let* ((in-code (lifoo-compile (first (first out))))
+         (out-code (mapcar (lambda (f)
+                             `(unless (lifoo-var *throwing*) ,f))
+                           in-code)))
+    (cons (cons in `(progn
+                      ,@out-code
+                      (lifoo-push (lifoo-var *throwing*))
+                      (setf (lifoo-var *throwing*) nil)))
           (rest out))))
 ```
 
@@ -110,7 +107,7 @@ TOTAL                         36.68
 ```
 
 ### conclusion
-So there you have it; wrapping code in jump tables with checks between statements seems to offer a faster approach than exceptions for short blocks. This also gives a hint of the worst case performance ratio between [Lifoo](https://github.com/codr4life/lifoo) and Lisp right now; around 400x slower.
+So there you have it; branching around statements seems to offer a faster approach than exceptions for short blocks. This also gives a hint of the worst case performance ratio between [Lifoo](https://github.com/codr4life/lifoo) and Lisp right now; around 400x slower.
 
 You may find more in the same spirit [here](http://vicsydev.blogspot.de/) and [here](https://github.com/codr4life/vicsydev), and a full implementation of this idea and more [here](https://github.com/codr4life).
 

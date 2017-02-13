@@ -2,7 +2,7 @@
 posted Feb 13th 2017, 01:00 am
 
 ### preramble
-It's a shame that many programming languages fail to provide wholehearted support for green threads, aka. cooperative scheduling; and that fewer still leave enough rope to roll your own. Even Common Lisp fails the test, as it neither provides green threads nor the power needed to implement them; there have been various more or less successful [attempts](https://orthecreedence.github.io/cl-async/2013/03/26/green-threads-and-async-programming.html) over the years, but they all boil down to [pixie dust](http://quickdocs.org/cl-cont/api). One popular urban myth in Common Lisp circles is that green threads bring nothing to the table since threads are already fast enough; which misses the point that cooperative scheduling is a useful, complementary approach to structuring software; as long as performance is at least comparable, and it usually is because of the relative simplicity.
+It's a shame that many programming languages fail to provide wholehearted support for green threads, aka. cooperative scheduling; and that fewer still leave enough rope to roll your own. Even Common Lisp fails the test, as it neither provides green threads nor the power needed to implement them; there have been various more or less successful [attempts](https://orthecreedence.github.io/cl-async/2013/03/26/green-threads-and-async-programming.html) over the years, but they all boil down to [pixie dust](http://quickdocs.org/cl-cont/api). One popular urban myth in Common Lisp circles is that green threads bring nothing to the table since threads are already fast enough; which misses the point that cooperative scheduling is a useful, complementary approach to structuring software; as long as performance is at least comparable; and as an added bonus, the performance profile is more consistent and predictable than for preemptive threads.
 
 ### Duff's Device in Common Lisp
 In C, it's popular to build green threads on top of switches interleaved with user code. The approach doesn't play well with optimising and requires serious hacks to be usable. Implementing the same approach in Lisp takes some imagination, as there are no comparable statements; ```tag-body``` requires clear text labels for jumping, no dynamic look up is possible; and ```case``` doesn't allow fall-through, which is crucial. With jumping off the table, the next possibility is branching around statements; Common Lisp compilers are pretty hard core when it comes to optimisation, which means it's possible to get away with things like this; but modifying unknown Lisp code on statement level is a tar pit.
@@ -16,6 +16,23 @@ Lifoo> 41 1 (1 task-yield +) task
        done? swap result swap drop cons
 
 (42 . T)
+
+Lifoo> 42 1 (1 task-yield +) task source
+
+((WHEN (AND (< #:G2537 1) (NOT (TASK-YIELDING? #:G2536)))
+          (SETF (TASK-LINE #:G2536) 1)
+          (LIFOO-PUSH 1))
+        (WHEN (AND (< #:G2537 2) (NOT (TASK-YIELDING? #:G2536)))
+          (SETF (TASK-LINE #:G2536) 2)
+          (IF (FUNCALL (TYPE-CHECKER [word: task-yield nil]) (STACK *LIFOO*))
+              (LIFOO-CALL [word: task-yield nil])
+              (LIFOO-CALL 'TASK-YIELD)))
+        (WHEN (AND (< #:G2537 3) (NOT (TASK-YIELDING? #:G2536)))
+          (SETF (TASK-LINE #:G2536) 3)
+          (IF (FUNCALL (TYPE-CHECKER [word: + (number number)])
+                       (STACK *LIFOO*))
+              (LIFOO-CALL [word: + (number number)])
+              (LIFOO-CALL '+))))
 
 Lifoo> 38 
        1 (inc task-yield inc) task drop
@@ -76,8 +93,7 @@ Lifoo> 38
   (id (gensym)) stack source fn (line 0 :type fixnum)
   (done? nil :type boolean) (yielding? nil :type boolean))
 
-(define-cl4l-fn lifoo-task (code num-args &key (exec *lifoo*))
-    (:speed 1)
+(defun lifoo-task (code num-args &key (exec *lifoo*))
   "Returns new task for CODE with NUM-ARGS arguments in EXEC"
   (let ((_task (gensym)) (_line (gensym))
         (line 0))

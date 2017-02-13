@@ -67,8 +67,7 @@ Lifoo> (((:up throw "fail" error) catch throw)@
 Unfortunately, embedded languages are seldom as fast as their hosts; beating raw Lisp conditions in [Lifoo](https://github.com/codr4life/lifoo) is not happening any time soon. But since [Lifoo](https://github.com/codr4life/lifoo) provides a bridge to Lisp conditions, called signals in [Lifoo](https://github.com/codr4life/lifoo)-speak; it's still possible to compare the different approaches, all else being mostly equal. 
 
 ```
-LIFOO> (cl4l-test:run-suite '(:lifoo :throw :perf) :warmup 10 
-                                                   :reps 10000)
+LIFOO> (cl4l-test:run-suite '(:lifoo :throw :perf) :reps 10000)
 (lifoo throw perf)            16.87
 (lifoo throw perf lisp)       0.072
 (lifoo throw perf signal)     28.21

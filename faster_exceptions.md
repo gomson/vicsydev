@@ -107,7 +107,7 @@ TOTAL                         36.68
 ```
 
 ### conclusion
-So there you have it; branching around statements seems to offer a faster approach than exceptions for short blocks. This also gives a hint of the worst case performance ratio between [Lifoo](https://github.com/codr4life/lifoo) and Lisp right now; around 400x slower.
+So there you have it; branching around statements seems to offer a faster approach than full exceptions for short blocks of code. This also gives a hint of the worst case performance ratio between [Lifoo](https://github.com/codr4life/lifoo) and Lisp right now; around 400x slower.
 
 You may find more in the same spirit [here](http://vicsydev.blogspot.de/) and [here](https://github.com/codr4life/vicsydev), and a full implementation of this idea and more [here](https://github.com/codr4life).
 

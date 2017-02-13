@@ -65,11 +65,10 @@ Unfortunately, embedded languages are seldom as fast as their hosts; beating raw
 
 ```
 LIFOO> (cl4l-test:run-suite '(:lifoo :throw :perf) :reps 10000)
-(lifoo throw perf)             12.4
+(lifoo throw perf)            14.65
 (lifoo throw perf lisp)       0.068
-(lifoo throw perf signal)     24.21
-TOTAL                         36.68
-
+(lifoo throw perf signal)     26.38
+TOTAL                          41.1
 
 (define-test (:lifoo :throw :perf)
   (lifoo-asseq :ok

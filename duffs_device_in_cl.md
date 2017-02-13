@@ -219,9 +219,10 @@ Lifoo> 40 1 ((task-yield inc)@ call 1 +) task
 As of right now, cooperative tasks are around 10x faster than preemptive threads in [Lifoo](https://github.com/codr4life/lifoo); but there is plenty more low hanging fruit left in the task code path. ```cl4l:*cl4l-speed*``` may be set to a value between 1 and 3 to optimize most of the code involved in one go.
 
 ```
-(lifoo task perf)              0.94
-(lifoo task spawn perf)       11.44
-TOTAL                         12.38
+LIFOO> (cl4l-test:run-suite '(:lifoo :task :perf) :reps 100)
+(lifoo task perf)             1.028
+(lifoo task spawn perf)       13.54
+TOTAL                         14.57
 
 
 (define-test (:lifoo :task :perf)

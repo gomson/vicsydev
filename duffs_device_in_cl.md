@@ -58,15 +58,21 @@ Lifoo> 38
   ;; and pushes new task
   (define-macro-word :task (in out)
     (declare (ignore in))
-    (let ((fst (first out)))
+    (let* ((fst (first out))
+           (source (first fst))
+           (fn (lifoo-compile-task source)))
       (cons (cons (first fst)
-                  `(lifoo-push (lifoo-task ',(first fst)
+                  `(lifoo-push (lifoo-task ',source ,fn
                                            (lifoo-pop))))
             (rest out))))
 
+  ;; Pops $task and pushes source
+  (define-lisp-word :source (lifoo-task) ()
+    (let ((task (lifoo-pop)))
+      (lifoo-push (task-source task))))
+
   ;; Runs $1 until next yield or done?
-  (define-lisp-word :run (lifoo-task)
-      ()
+  (define-lisp-word :run (lifoo-task) ()
     (lifoo-run-task (lifoo-peek)))
 
   ;; Runs all tasks that are not done? once
@@ -88,49 +94,56 @@ Lifoo> 38
 
   ;; Pushes result ($1) of $1
   (define-lisp-word :result (lifoo-task) (:speed 1)
-    (let* ((task (lifoo-peek))
-           (stack (task-stack task)))
-      (lifoo-push (lifoo-val (aref stack (1- (length stack))))))))
+    (lifoo-push (lifoo-task-result (lifoo-peek)))))
 
 (defstruct (lifoo-task (:conc-name task-))
   (id (gensym)) stack source fn (line 0 :type fixnum)
   (done? nil :type boolean) (yielding? nil :type boolean))
 
-(defun lifoo-task (code num-args &key (exec *lifoo*))
-  "Returns new task for CODE with NUM-ARGS arguments in EXEC"
-  (let ((_task (gensym)) (_line (gensym))
-        (line 0))
+(define-cl4l-fn lifoo-compile-task (source &key (exec *lifoo*))
+    (:speed 1)
+  "Returns compiled lambda for CODE in EXEC"
+  (let ((_task (gensym)) (_line (gensym)) (line 0))
     (declare (type fixnum line))
-    (labels ((conv (f)
-               (incf line)
-               `(when (and (< ,_line ,line)
-                           (not (task-yielding? ,_task)))
-                  (setf (task-line ,_task) ,line)
-                  ,f)))
-      (let* ((stack (stack exec))
-             (len (length stack))
-             (stack2 (subseq stack (- len num-args)))
-             (task-stack (make-array (min num-args 3)
-                                     :adjustable t
-                                     :fill-pointer num-args
-                                     :initial-contents stack2))
-             (source (mapcar #'conv
-                             (lifoo-compile code :exec exec)))
-             
-             (task
-               (make-lifoo-task
-                :source source
-                :fn (eval `(lambda ()
-                             ,(cl4l-optimize)
-                             (let* ((,_task (lifoo-var *task*))
-                                    (,_line (task-line ,_task)))
-                               (declare (ignorable ,_task ,_line))
-                               ,@source)))
-                :stack task-stack)))
-        (push task (lifoo-var *tasks* :exec exec))
-        task))))
+    (let ((code
+            (mapcar (lambda (f)
+                      (incf line)
+                      `(when (and (< ,_line ,line)
+                                  (not (task-yielding? ,_task)))
+                         (setf (task-line ,_task) ,line)
+                         ,f))
+                    (lifoo-compile source :exec exec))))
+      (eval `(lambda ()
+               ,(cl4l-optimize)
+               (let* ((,_task (lifoo-var *task*))
+                      (,_line (task-line ,_task)))
+                 (declare (ignorable ,_task ,_line))
+                 ,@code))))))
 
-(defun lifoo-run-task (task &key (exec *lifoo*))
+(define-cl4l-fn lifoo-task (src fn num-args &key (exec *lifoo*))
+    (:speed 1)
+  "Returns new task for CODE with NUM-ARGS arguments in EXEC"
+  (let* ((stack (stack exec))
+         (len (length stack))
+         (stack2 (subseq stack (- len num-args)))
+         (task-stack (make-array (min num-args 3)
+                                 :adjustable t
+                                 :fill-pointer num-args
+                                 :initial-contents stack2))
+         (task (make-lifoo-task :source src
+                                :fn fn
+                                :stack task-stack)))
+    (push task (lifoo-var *tasks* :exec exec))
+    task))
+
+(define-cl4l-fn lifoo-task-result (task) ()
+  "Returns current top of stack for TASK"
+  (let ((stack (task-stack task)))
+    (unless (zerop (fill-pointer stack))
+      (lifoo-val (aref stack (1- (length stack)))))))
+
+(define-cl4l-fn lifoo-run-task (task &key (exec *lifoo*))
+    (:speed 1)
   "Runs TASK once in EXEC"
   (assert (not (task-done? task)))
   (let ((prev (stack exec)))
@@ -144,14 +157,15 @@ Lifoo> 38
       (setf (task-yielding? task) nil)
       (setf (task-done? task) t)))
 
-(defun lifoo-run-tasks (&key (exec *lifoo*))
+(define-cl4l-fn lifoo-run-tasks (&key (exec *lifoo*)) (:speed 1)
   "Runs all tasks in EXEC that are not DONE? once"
   (let ((rem 0) (cnt 0))
     (labels ((rec (in out)
                (if in
                    (let ((task (first in)))
-                     (lifoo-run-task task :exec exec)
-                     (incf cnt)
+                     (unless (task-done? task)
+                       (lifoo-run-task task :exec exec)
+                       (incf cnt))
                      (rec (rest in)
                           (if (task-done? task)
                               out

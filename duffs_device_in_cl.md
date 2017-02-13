@@ -2,7 +2,10 @@
 posted Feb 13th 2017, 01:00 am
 
 ### preramble
-It's a shame that many programming languages fail to provide wholehearted support for green threads, aka. cooperative scheduling; and that fewer still leave enough rope to roll your own. Even Common Lisp fails the test, as it neither provides green threads nor the power needed to implement them; there have been various more or less successful [attempts](https://orthecreedence.github.io/cl-async/2013/03/26/green-threads-and-async-programming.html) over the years, but they all boil down to [pixie dust](http://quickdocs.org/cl-cont/api). One popular urban myth in Common Lisp circles is that green threads bring nothing to the table since it's preemptive threads are fast enough; which misses the point that cooperative scheduling is a useful, complementary approach to structuring software; as long as performance is at least comparable; and as an added bonus, the performance profile is more consistent and predictable than for preemptive threads.
+It's a shame that many programming languages fail to provide wholehearted support for green threads, aka. cooperative scheduling; and that fewer still leave enough rope to roll your own. Even Common Lisp fails the test, as it neither provides green threads nor the power needed to implement them. 
+
+### cooperative scheduling
+One popular urban myth in Common Lisp circles is that green threads bring nothing to the table since it's preemptive threads are fast enough; which misses the point that cooperative scheduling is a useful, complementary approach to structuring software; as long as performance is at least comparable; and as an added bonus, the performance profile is more consistent and predictable than for preemptive threads.
 
 ### Duff's Device
 In C, it's popular to build green threads on top of ```switch``` interleaved with user code; known as Duff's Device. The approach unfortunately doesn't play well with the compiler and requires serious hacks to be usable. Implementing the same idea in Lisp takes some imagination, as there is nothing comparable to ```switch```; ```tag-body``` requires clear text labels for jumping, no run-time look up is possible; and ```case``` doesn't allow fall-through, which is crucial. Branching around each statement is a possibility, Common Lisp compilers are pretty hard core when it comes to optimisation, which means it's possible to get away with it; but modifying unknown Lisp code on statement level is a tar pit.
@@ -162,7 +165,7 @@ Lifoo> 38
 ```
 
 ### semantics
-This implementation has the added quirk of only allowing yields from task scope, any yield calls from nested scopes are dealt with as soon as the stack unwinds.
+This implementation has the added quirk of only allowing yields from task scope, yields from nested scopes are dealt with as soon as the stack unwinds.
 
 ```
 Lifoo> 40 1 ((task-yield inc)@ call 1 +) task 
@@ -176,34 +179,38 @@ Lifoo> 40 1 ((task-yield inc)@ call 1 +) task
 ```
 
 ### performance
-As of right now, threads and cooperative tasks are comparable in Lifoo when it comes to performance; but there is plenty more low hanging fruit left in the task code path. ```cl4l:*cl4l-speed*``` may be set to a value between 1 and 3 to optimize most of the code involved in one go. The reason the spawn test uses channels is that two semaphores are needed to achieve the same semantics with preemptive threads.
+As of right now, threads and cooperative tasks are comparable in Lifoo when it comes to performance; but there is plenty more low hanging fruit left in the task code path. ```cl4l:*cl4l-speed*``` may be set to a value between 1 and 3 to optimize most of the code involved in one go.
 
 ```
 CL-USER> (cl4l-test:run-suite '(:lifoo :task :perf) :reps 10)
-(lifoo task perf)              2.94
-(lifoo task spawn perf)       3.172
-TOTAL                         6.112
-
+(lifoo task perf)             1.292
+(lifoo task spawn perf)       3.052
+TOTAL                         4.344
 
 (define-test (:lifoo :task :perf)
   (lifoo-asseq 0
     0
-    1 (1 asseq dec task-yield
-       1 asseq dec task-yield
-       1 asseq dec) task drop
-    1 (0 asseq inc task-yield
-       0 asseq inc task-yield
-       0 asseq inc) task drop
+    1 (dec task-yield
+       dec task-yield
+       dec) task drop
+    1 (inc task-yield
+       inc task-yield
+       inc) task drop
     finish-tasks drop))
 
 (define-test (:lifoo :task :spawn :perf)
-  (lifoo-asseq 0
-    0 chan
-    1 (1 send 2 send 3 send)@ spawn swap
-    1 (recv 1 asseq drop
-       recv 2 asseq drop
-       recv 3 asseq drop)@ spawn
-    wait drop swap wait length))
+  (lifoo-asseq '(0 . 0)
+    0 semaphore
+    0 semaphore
+    2 (signal swap wait swap
+       signal swap wait swap
+       signal swap wait)@ spawn
+    swing
+    2 (signal swap wait swap
+       signal swap wait swap
+       signal swap wait)@ spawn
+    wait drop 2 pick wait
+    drop count swap drop swap count swap drop cons))
 ```
 
 You may find more in the same spirit [here](http://vicsydev.blogspot.de/) and [here](https://github.com/codr4life/vicsydev), and a full implementation of this idea and more [here](https://github.com/codr4life).

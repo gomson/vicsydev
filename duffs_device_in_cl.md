@@ -229,10 +229,10 @@ TOTAL                         12.38
     0
     1 (dec task-yield
        dec task-yield
-       dec) task drop
+       dec task-yield) task drop
     1 (inc task-yield
        inc task-yield
-       inc) task drop
+       inc task-yield) task drop
     finish-tasks drop))
 
 (define-test (:lifoo :task :spawn :perf)

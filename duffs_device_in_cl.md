@@ -8,7 +8,7 @@ It's a shame that many programming languages fail to provide wholehearted suppor
 In C, it's popular to build green threads on top of ```switch``` interleaved with user code; known as Duff's Device. Implementing the same idea in Lisp takes some imagination; ```tagbody``` needs jump labels in clear text, and ```case``` doesn't fall through. The not entirely obvious solution is to put a ```case``` inside a ```tagbody``` to do the actual jumping. 
 
 ### Forth
-While the approach described here is perfectly doable in straight Common Lisp, I'll leave that implementation as an exercise for someone else; the rest of this guided tour will use [Lifoo](https://github.com/codr4life/lifoo), an embedded Forth that compiles to Lisp.
+While the approach described here could be doable in straight Common Lisp, I'll leave that implementation as an exercise for someone else; the rest of this guided tour will use [Lifoo](https://github.com/codr4life/lifoo), an embedded Forth that compiles to Lisp.
 
 ```
 Lifoo> 41 1 (1 task-yield +) task 

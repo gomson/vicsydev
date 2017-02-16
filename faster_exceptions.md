@@ -4,12 +4,6 @@ posted Feb 16th 2017, 9:00 pm
 ### preramble
 I've often dreamt of being able to implement green threads, exceptions and more from user code without pulling my hair out in the process. There are so many ideas I would like to play around with when it comes to flow control, so much room for exploration. One of the ideas I've been playing around with is implementing throw and catch using regular branching. Unfortunately, most languages fail to even make this possible; and fewer still make it easy. This post describes an implementation of this idea in [Lispy Forth](https://github.com/codr4life/lifoo).
 
-### Lisp
-Even Common Lisp, the supposed king of customisation; fails the test by making general purpose code translation too difficult. Wrapping code around forms is fine; but as soon as the need to transform unknown code on statement level arises, it turns into a [tar pit](http://quickdocs.org/cl-cont/api). 
-
-### [Lifoo](https://github.com/codr4life/lifoo)
-One advantage of Forth syntax is that it's linear nature makes it possible to pull these kinds of tricks. Using a [Lispy Forth](https://github.com/codr4life/lifoo) with macro support turns possible into trivial.
-
 ```
 CL-USER> (lifoo:lifoo-repl)
 Welcome to Lifoo,

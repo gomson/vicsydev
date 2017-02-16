@@ -2,16 +2,13 @@
 posted Feb 16th 2017, 9:00 pm
 
 ### preramble
-It's a shame that many programming languages fail to provide wholehearted support for green threads, aka. cooperative scheduling; and that fewer still leave enough rope to roll your own. 
-
-### cooperative scheduling
-One popular urban myth in Common Lisp circles is that green threads bring nothing to the table since it's preemptive threads are fast enough; which misses the point that cooperative scheduling is a useful, complementary approach to structuring software; as long as performance is at least comparable; and as an added bonus, the performance profile is more consistent and predictable than for preemptive threads.
+It's a shame that many programming languages fail to provide wholehearted support for green threads, aka. cooperative scheduling; and that fewer still leave enough rope to roll your own. Cooperative scheduling is a useful, complementary approach to structuring software; as long as performance is at least comparable; and as an added bonus, the performance profile is more consistent and predictable.
 
 ### Duff's Device
-In C, it's popular to build green threads on top of ```switch``` interleaved with user code; known as Duff's Device. Implementing the same idea in Lisp takes some imagination; ```tag-body``` needs jump labels in clear text, and ```case``` doesn't fall through. The not entirely obvious solution is to put a ```case``` inside a ```tagbody``` to do the actual jumping. 
+In C, it's popular to build green threads on top of ```switch``` interleaved with user code; known as Duff's Device. Implementing the same idea in Lisp takes some imagination; ```tagbody``` needs jump labels in clear text, and ```case``` doesn't fall through. The not entirely obvious solution is to put a ```case``` inside a ```tagbody``` to do the actual jumping. 
 
 ### Forth
-While the approach taken here is perfectly doable in straight Common Lisp, I'll leave that implementation as an exercise for someone else; the rest of this guided tour will use [Lifoo](https://github.com/codr4life/lifoo), an embedded Forth that compiles to Lisp.
+While the approach described here is perfectly doable in straight Common Lisp, I'll leave that implementation as an exercise for someone else; the rest of this guided tour will use [Lifoo](https://github.com/codr4life/lifoo), an embedded Forth that compiles to Lisp.
 
 ```
 Lifoo> 41 1 (1 task-yield +) task 

@@ -23,52 +23,44 @@ Lifoo> (:frisbee throw :fail) catch
 Lifoo> ((:frisbee throw :fail) catch) compile
 
 (PROGN
-        (PROGN
-         (UNLESS (LIFOO-VAR *THROWING*) (LIFOO-PUSH :FRISBEE))
-         (UNLESS (LIFOO-VAR *THROWING*)
-           (IF (FUNCALL (TYPE-CHECKER [word: throw (t)]) (STACK *LIFOO*))
-               (LIFOO-CALL [word: throw (t)])
-               (LIFOO-CALL 'THROW)))
-         (UNLESS (LIFOO-VAR *THROWING*) (LIFOO-PUSH :FAIL))
-         (LIFOO-PUSH (LIFOO-VAR *THROWING*))
-         (SETF (LIFOO-VAR *THROWING*) NIL)))
+  (TAGBODY
+    (LIFOO-PUSH :FRISBEE)
+    (PROGN 
+      (SETF (LIFOO-VAR *THROWING*) (LIFOO-POP)) 
+      (GO G2715))
+    (LIFOO-PUSH :FAIL)
+  G2715
+    (LIFOO-PUSH (LIFOO-VAR *THROWING*))
+    (SETF (LIFOO-VAR *THROWING*) NIL)))
 
 
-(define-lisp-word :throw (t) ()
-  (setf (lifoo-var *lifoo-throwing*) (lifoo-pop)))
+(define-macro-word :throw (in out)
+  (cons (cons in
+              `(progn
+                 (setf (lifoo-var *throwing*) (lifoo-pop))
+                 (go ,*catch*)))
+        out))
 
 (define-macro-word :catch (in out)
-  (let* ((in-code (lifoo-compile (first (first out))))
-         (out-code (mapcar (lambda (f)
-                             `(unless (lifoo-var *throwing*) ,f))
-                           in-code)))
-    (cons (cons in `(progn
-                      ,@out-code
+  (let* ((code (lifoo-compile (first (first out)))))
+    (cons (cons in `(tagbody
+                       ,@code
+                       ,*catch*
                       (lifoo-push (lifoo-var *throwing*))
                       (setf (lifoo-var *throwing*) nil)))
           (rest out))))
-```
-
-### semantics
-This implementation has the added feature (or bug, depending on perspective) of requiring thrown values to be caught and thrown again inside nested code blocks to get "normal" exception semantics; if not, the code will continue running as usual until it hits a catch scope.
-
-```
-Lifoo> (((:up throw "fail" error) catch throw)@
-        (:always)@ always) 
-       catch cons
-
-(:UP . :ALWAYS)
 ```
 
 ### performance
 Unfortunately, embedded languages are seldom as fast as their hosts; beating raw Lisp conditions in [Lifoo](https://github.com/codr4life/lifoo) is not happening any time soon. But since [Lifoo](https://github.com/codr4life/lifoo) provides a bridge to Lisp conditions, called signals in [Lifoo](https://github.com/codr4life/lifoo)-speak; it's still possible to compare the different approaches, all else being mostly equal. 
 
 ```
-LIFOO> (cl4l-test:run-suite '(:lifoo :throw :perf) :reps 10000)
-(lifoo throw perf)            14.65
-(lifoo throw perf lisp)       0.068
-(lifoo throw perf signal)     26.38
-TOTAL                          41.1
+CL-USER> (cl4l-test:run-suite '(:lifoo :throw :perf) :reps 10000)
+(lifoo throw perf)            8.576
+(lifoo throw perf lisp)       0.072
+(lifoo throw perf sig)        24.12
+TOTAL                         32.77
+
 
 (define-test (:lifoo :throw :perf)
   (lifoo-asseq :ok
@@ -106,7 +98,7 @@ TOTAL                          41.1
 ```
 
 ### conclusion
-So there you have it; branching around statements seems to offer a faster approach than full exceptions for short blocks of code. This also gives a hint of the worst case performance ratio between [Lifoo](https://github.com/codr4life/lifoo) and Lisp right now; around 400x slower.
+So there you have it; jump tables seem to offer a faster approach than full exceptions for short blocks of code. This also gives a hint of the worst case performance ratio between [Lifoo](https://github.com/codr4life/lifoo) and Lisp right now; around 400x slower.
 
 You may find more in the same spirit [here](http://vicsydev.blogspot.de/) and [here](https://github.com/codr4life/vicsydev), and a full implementation of this idea and more [here](https://github.com/codr4life).
 

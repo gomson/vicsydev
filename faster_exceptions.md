@@ -1,5 +1,5 @@
 # [vicsy/dev](https://github.com/codr4life/vicsydev) | Faster exceptions with Lispy Forth
-posted Feb 11th 2017, 02:00 am
+posted Feb 16th 2017, 9:00 pm
 
 ### preramble
 I've often dreamt of being able to implement green threads, exceptions and more from user code without pulling my hair out in the process. There are so many ideas I would like to play around with when it comes to flow control, so much room for exploration. One of the ideas I've been playing around with is implementing throw and catch using regular branching. Unfortunately, most languages fail to even make this possible; and fewer still make it easy. This post describes an implementation of this idea in [Lispy Forth](https://github.com/codr4life/lifoo).

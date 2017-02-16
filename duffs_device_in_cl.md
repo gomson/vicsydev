@@ -1,5 +1,5 @@
 # [vicsy/dev](https://github.com/codr4life/vicsydev) | Duff's Device in Common Lisp
-posted Feb 13th 2017, 01:00 am
+posted Feb 16th 2017, 9:00 pm
 
 ### preramble
 It's a shame that many programming languages fail to provide wholehearted support for green threads, aka. cooperative scheduling; and that fewer still leave enough rope to roll your own. 

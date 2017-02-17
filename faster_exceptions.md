@@ -1,99 +1,65 @@
-# [vicsy/dev](https://github.com/codr4life/vicsydev) | Faster exceptions with Lispy Forth
-posted Feb 16th 2017, 9:00 pm
+# [vicsy/dev](https://github.com/codr4life/vicsydev) | Faster Exceptions in Common Lisp
+posted Feb 17th 2017, 03:00 am
 
 ### preramble
-One of the ideas I've been playing around with is implementing faster throw and catch using goto. Unfortunately, most languages fail to even make this possible; and fewer still make it easy. This post describes an implementation of this idea in [Lispy Forth](https://github.com/codr4life/lifoo).
+One of the ideas I've been playing around with is implementing faster exceptions using goto. Unfortunately, most languages fail to even make this possible; and fewer still make it easy. This post describes an implementation of the idea in Common Lisp and compares it's performance to regular conditions.
+
+### use
+The ```with-catch``` macro provides a ```throw-value``` macro within it's body and returns caught value or NIL.
 
 ```
-CL-USER> (lifoo:lifoo-repl)
-Welcome to Lifoo,
-press enter on empty line to evaluate,
-exit ends session
+CL-USER> (cl4l-utils:with-catch 
+             (format t "before~%")
+             (cl4l-utils:throw-value 42)
+             (format t "after~%"))
+before
+42
+```
 
-Lifoo> (:frisbee throw :fail) catch
+### implementation
+Implementation is trivial since it delegates all heavy lifting to ```tagbody``` and ```macrolet```.
 
-:FRISBEE
-
-Lifoo> ((:frisbee throw :fail) catch) compile
-
-(PROGN
-  (TAGBODY
-    (LIFOO-PUSH :FRISBEE)
-    (PROGN 
-      (SETF (LIFOO-VAR *THROWING*) (LIFOO-POP)) 
-      (GO G2715))
-    (LIFOO-PUSH :FAIL)
-  G2715
-    (LIFOO-PUSH (LIFOO-VAR *THROWING*))
-    (SETF (LIFOO-VAR *THROWING*) NIL)))
-
-
-(define-macro-word :throw (in out)
-  (cons (cons in
-              `(progn
-                 (setf (lifoo-var *throwing*) (lifoo-pop))
-                 (go ,*catch*)))
-        out))
-
-(define-macro-word :catch (in out)
-  (let* ((code (lifoo-compile (first (first out)))))
-    (cons (cons in `(tagbody
-                       ,@code
-                       ,*catch*
-                      (lifoo-push (lifoo-var *throwing*))
-                      (setf (lifoo-var *throwing*) nil)))
-          (rest out))))
+```
+(defmacro with-catch (&body body)
+  "Executes BODY while catching thrown values,
+   returns caught value or NIL"
+  (let ((_catch (symbol! (gensym))) (_thrown (gensym)))
+    `(macrolet ((throw-value (val)
+                  `(progn
+                     (setf ,',_thrown ,val)
+                     (go ,',_catch))))
+       (let ((,_thrown))
+         (tagbody
+            ,@body
+            ,_catch)
+         ,_thrown))))
 ```
 
 ### performance
-Unfortunately, embedded languages are seldom as fast as their hosts; beating raw Lisp conditions in [Lifoo](https://github.com/codr4life/lifoo) is not happening any time soon. But since [Lifoo](https://github.com/codr4life/lifoo) provides a bridge to Lisp conditions, called signals in [Lifoo](https://github.com/codr4life/lifoo)-speak; it's still possible to compare the different approaches, all else being mostly equal. 
+Finally we arrive at the point where we get some numbers to go with the intuition, throwing and catching is around 25 times faster than signalling and handling conditions on my setup.
 
 ```
-CL-USER> (cl4l-test:run-suite '(:lifoo :throw :perf) :reps 10000)
-(lifoo throw perf)            8.576
-(lifoo throw perf lisp)       0.072
-(lifoo throw perf sig)        24.12
-TOTAL                         32.77
+CL-USER> (cl4l-test:run-suite '(:cl4l :with-catch :perf) 
+                              :reps 100000000)
+
+(cl4l with-catch perf)        1.136
+(cl4l with-catch perf cond)   27.66
+TOTAL                          28.8
 
 
-(define-test (:lifoo :throw :perf)
-  (lifoo-asseq :ok
-    (:ok throw
-     :fail)
-    catch))
-
-(define-test (:lifoo :throw :perf :signal)
-  (lifoo-asseq "ok"
-    ("ok" error
-     :fail)@
-    handle error-message))
-
-(define-test (:lifoo :throw :perf :lisp)
-  (dotimes (_ *reps*)
-    (handler-case
-        (progn
+(define-test (:cl4l :with-catch :perf :cond)
+  (handler-case
+      (progn
           (error "message")
           (assert nil))
-      (error ()))))
+    (error ())))
 
-
-(defmacro lifoo-asseq (res &body body)
-  "Asserts that evaluating BODY pushes value that compares equal 
-   to RES"
-  `(asseq ,res
-     (let* ((compiled 
-              (lifoo-compile '(reset clear ,@body)))
-            (fn (eval `(lambda ()
-                         ,(lifoo-optimize)
-                         ,@compiled))))
-       (dotimes (_ *reps*)
-         (funcall fn))
-       (lifoo-pop))))
+(define-test (:cl4l :with-catch :perf)
+  (with-catch
+    (throw-value "message")
+    (assert nil)))
 ```
 
-### conclusion
-So there you have it; jump tables seem to offer a faster approach than full exceptions for short blocks of code. This also gives a hint of the worst case performance ratio between [Lifoo](https://github.com/codr4life/lifoo) and Lisp right now; around 400x slower.
-
-You may find more in the same spirit [here](http://vicsydev.blogspot.de/) and [here](https://github.com/codr4life/vicsydev), and a full implementation of this idea and more [here](https://github.com/codr4life).
+You may find more in the same spirit [here](http://vicsydev.blogspot.de/) and [here](https://github.com/codr4life/vicsydev), and a full implementation of this idea and more [here](https://github.com/codr4life/cl4l).
 
 peace, out

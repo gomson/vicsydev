@@ -1,5 +1,5 @@
 # [vicsy/dev](https://github.com/codr4life/vicsydev) | Faster CL Green Threads with Duff's Device
-posted Feb 16th 2017, 01:00am
+posted Feb 17th 2017, 01:00am
 
 ### preramble
 It's a shame that many programming languages fail to provide wholehearted support for green threads, and that fewer still leave enough rope to roll your own. Cooperative scheduling is a useful, complementary approach to structuring software. It's often faster, sometimes much faster; and comes with a more consistent and predictable performance profile than preemptive threads. Every implementation of green threads in Common Lisp that I've come across unfortunately uses [cl-cont](http://quickdocs.org/cl-cont/api), which is too slow and messes too much with the code. 

@@ -117,8 +117,8 @@ Included below are the first benchmark results, tasks compared to preemptive thr
 ```
 CL4L-TASK> (cl4l-test:run-suite '(:cl4l :task :perf) :reps 10000)
 (cl4l task perf)              0.012
-(cl4l task perf preemtive)    58.41
-TOTAL                         58.42
+(cl4l task perf preemtive)    17.75
+TOTAL                         17.76
 
 
 (defparameter *perf-reps* 3)

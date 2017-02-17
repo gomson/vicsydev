@@ -112,7 +112,7 @@ CL4L-TASK> (macroexpand-1
 ```
 
 ### performance
-Included below are the first benchmark results, tasks compared to preemptive threads with semaphores to force cooperative behavior. The 5000x performance boost more than makes up for the inconvenience of only supporting yields from task scope. ```cl4l:*cl4l-speed*``` may be set to a value between 1 and 3 to optimize most of the code involved in one go.
+Included below are the first benchmark results, tasks compared to preemptive threads with semaphores to force alternate execution. The massive performance boost more than makes up for the inconvenience of only supporting yields from task scope. ```cl4l:*cl4l-speed*``` may be set to a value between 1 and 3 to optimize most of the code involved in one go.
 
 ```
 CL4L-TASK> (cl4l-test:run-suite '(:cl4l :task :perf) :reps 10000)

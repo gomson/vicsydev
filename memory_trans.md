@@ -24,7 +24,7 @@ Lifoo> 1 2 (3 4 commit 5 6 rollback) trans stack
 (4 3 2 1)
 
 ;; Roll back delete from hash table;
-;; hash table takes an optional source as parameter;
+;; hash tables take an optional source as parameter;
 ;; GET marks the spot and DEL does the job
 
 Lifoo>  ((1 . :foo) (2 . :bar)) hash

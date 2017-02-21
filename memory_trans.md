@@ -17,17 +17,15 @@ Lifoo> 1 2 (3 4 rollback) trans stack
 
 (2 1)
 
-;; Add commit before rollback;
-;; STACK returns all elements on the stack.
+;; Try commit before rollback
 
 Lifoo> 1 2 (3 4 commit 5 6 rollback) trans stack
 
 (4 3 2 1)
 
 ;; Roll back delete from hash table;
-;; hash table takes a source as parameter,
-;; in this case an assoc list;
-;; GET marks the spot and DEL does the JOB.
+;; hash table takes an optional source as parameter;
+;; GET marks the spot and DEL does the job
 
 Lifoo>  ((1 . :foo) (2 . :bar)) hash
         (1 get del rollback) trans
@@ -43,7 +41,7 @@ Lifoo> ((bar -1) baz) :foo struct
 NIL
 
 ;; Rollback struct update;
-;; constructors take an assoc list as source.
+;; constructors take an optional assoc list as source
 
 Lifoo> (:bar 41) make-foo
        (foo-bar 42 set drop commit
@@ -53,8 +51,7 @@ Lifoo> (:bar 41) make-foo
 42
 
 ;; Roll back word (re-)definition,
-;; uses DROP to skip arguments since it's already
-;; made up it's mind.
+;; uses DROP to skip arguments since it already made up it's mind
 
 Lifoo> drop drop 42 $ 
        (number number) :+ define 

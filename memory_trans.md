@@ -1,4 +1,4 @@
-# [vicsy/dev](https://github.com/codr4life/vicsydev) | Transactional memory in Lispy Forth
+# [vicsy/dev](https://github.com/codr4life/vicsydev) | Transactional memory in Forth in Lisp
 posted Feb 21st 2017, 10:00 pm
 
 ### preramble

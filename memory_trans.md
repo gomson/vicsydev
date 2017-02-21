@@ -66,6 +66,9 @@ Lifoo> drop drop 42 $
 Since [Lifoo](https://github.com/codr4life/lifoo) uses separate instances and channels for multi-threaded programming, and has no need for protection against memory corruption; it simply logs closures for rolling back changes reverse order.
 
 ```
+(defstruct (lifoo-cell (:conc-name cell-))
+  val set del)
+
 (defun lifoo-push-cell (it &key (exec *lifoo*))
   "Pushes CELL onto EXEC stack"  
   (vector-push-extend it (stack exec))

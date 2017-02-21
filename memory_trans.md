@@ -1,14 +1,14 @@
-# [vicsy/dev](https://github.com/codr4life/vicsydev) | Transactional memory in Forth in Lisp
+# [vicsy/dev](https://github.com/codr4life/vicsydev) | Transactional memory in Forth, in Lisp
 posted Feb 21st 2017, 10:00 pm
 
 ### preramble
 Transactional memory is most often mentioned in the context of multi-threaded programming, where the reason the system tracks memory access is to prevent corruption. Another kind of transactional memory is the database, SQL or otherwise; one of the main reasons they exist is to provide transactions over data. Transactions are useful in many contexts where not commonly reached for; [transactional collections](https://github.com/codr4life/cl4l#indexes) offer a nice compromise between primitive collections and databases, and the world would be a better place if more undo facilities tracked change sets rather than individual changes.
 
 ### the case for embedded languages
-Implementing general purpose transactional memory as a library is impossible, there's just no way to hook into the system deep enough to capture all possibilities; you'll end up replacing every single part of the language that is covered. One of the ideas with embedding simple languages like [Lifoo](https://github.com/codr4life/lifoo) into more powerful host languages like Common Lisp is the increased leverage you get from viewing the world from the outside.
+Implementing general purpose transactional memory from the inside is mostly impossible, there's just no way to hook into the system deep enough to capture all possibilities without ending up replacing every single part of the language that is covered. One of the ideas with embedding simple languages like [Lifoo](https://github.com/codr4life/lifoo) into more powerful host languages like Common Lisp is the increased leverage you get from viewing the world from the outside.
 
 ### transctions
-[Lifoo](https://github.com/codr4life/lifoo) provides memory transactions that track updates to the stack, any place that can be [set](https://github.com/codr4life/vicsydev/blob/master/consing_forth.md#setf) or [deleted](https://github.com/codr4life/vicsydev/blob/master/consing_forth.md#del); and the word dictionary; which is pretty much everything as far as [Lifoo](https://github.com/codr4life/lifoo) is concerned. Since separate instances and channels are used for multi-threaded programming, it has no need for protecting against memory corruption. Transactions may be committed and rolled back several times during their lives, and are reset each time.
+[Lifoo](https://github.com/codr4life/lifoo) provides memory transactions that track updates to the stack, any place that can be [set](https://github.com/codr4life/vicsydev/blob/master/consing_forth.md#setf) or [deleted](https://github.com/codr4life/vicsydev/blob/master/consing_forth.md#del); and the word dictionary. Transactions may be committed and rolled back several times during their lives, and are reset each time.
 
 ```
 ;; Roll back changes to stack
@@ -60,6 +60,51 @@ Lifoo> drop drop 42 $
        1 2 +
 
 3
+```
+
+### implementation
+Since [Lifoo](https://github.com/codr4life/lifoo) uses separate instances and channels for multi-threaded programming, and has no need for protection against memory corruption; it simply logs closures for rolling back changes reverse order.
+
+```
+(defun lifoo-push-cell (it &key (exec *lifoo*))
+  "Pushes CELL onto EXEC stack"  
+  (vector-push-extend it (stack exec))
+  (when-let (trans (lifoo-trans :exec exec))
+    (push (lambda ()
+            (lifoo-pop-cell :exec exec))
+          (on-rollback trans)))
+  it)
+
+(defun lifoo-pop-cell (&key (exec *lifoo*))
+  "Pops cell from EXEC stack"
+  (unless (zerop (fill-pointer (stack exec)))
+    (let ((it (vector-pop (stack exec))))
+      (when-let (trans (lifoo-trans :exec exec))
+        (push (lambda ()
+                (lifoo-push-cell it :exec exec))
+              (on-rollback trans)))
+      it)))
+
+(defun (setf lifoo-val) (val cell &key (exec *lifoo*))
+  (when-let (trans (lifoo-trans :exec exec))
+    (let ((prev (cell-val cell)))
+      (push (lambda ()
+              (setf (lifoo-val cell :exec exec) prev))
+            (on-rollback trans))))
+  (when-let (set (cell-set cell))
+    (funcall set val))
+  (setf (cell-val cell) val))
+
+(defun lifoo-del (self &key (exec *lifoo*))
+  (let* ((val (lifoo-val self))
+         (del (or (cell-del self)
+                  (error "missing del: ~a" val))))
+    (declare (type function del))
+    (when-let (trans (lifoo-trans :exec exec))
+      (push (lambda ()
+              (setf (lifoo-val self :exec exec) val))
+            (on-rollback trans)))
+    (funcall del)))
 ```
 
 You may find more in the same spirit [here](http://vicsydev.blogspot.de/) and [here](https://github.com/codr4life/vicsydev), and a full implementation of this idea and more [here](https://github.com/codr4life).

@@ -67,7 +67,7 @@ Lifoo> (lifoo-push (concatenate 'string
 ```
 
 ### repl
-A basic REPL is [provided](https://github.com/codr4life/lifoo/blob/master/lifoo.bz2) for playing around with code in real-time.
+A basic REPL is [provided](https://github.com/codr4life/lifoo#setup) for playing around with code in real-time.
 
 ```
 CL-USER> (lifoo-repl:lifoo-repl)

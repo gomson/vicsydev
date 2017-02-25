@@ -1,14 +1,14 @@
 # [vicsy/dev](https://github.com/codr4life/vicsydev) | a Lispy, embedded Forth
-posted Feb 6th 2017, 05:00 pm
+posted Feb 25th 2017, 04:00 pm
 
 ### preramble
-I've been craving for a trivial, embedded scripting language that feels just right for a long, long time; something I can quickly drop into any project that needs scripting without too much ceremony. I'm aware of Lua & co., but that's still not the kind of trivial I'm aiming for. And since I'm mostly slinging Lisp these days, it should be possible to leverage some of it's power for a tighter integration.
+I've been craving for a simple but powerful embedded language for a long, long time. I'm aware of Lua, but that's still not the kind of simplicity and seamless integration I'm aiming for. Since I'm mostly slinging Common Lisp these days, I decided to go all in and see how far it's possible to take the idea.
 
 ### forth
 If you have no idea what Forth is; a first step is to think of it as Reverse Polish Notation for code, the kind of code Yoda would write. Like Lisp, Forth is more idea than implementation; arguably even more so than Lisp because of it's simplicity. While widely popular in embedded hardware circles, it's unfortunately mostly forgotten outside of that niche. Unfortunate because it's one of the most trivial languages to implement, and a solid foundation for embedded and/or domain specific languages. 
 
 ### lifoo
-There's a saying in Forth circles; that if you've seen one Forth compiler, you've seen one Forth compiler. Besides being based on stacks and words, Lifoo is very much Lisp in Forth clothes; to the point where it reuses the Lisp reader to read Lifoo code.
+There's a saying in Forth circles; that if you've seen one Forth compiler, you've seen one Forth compiler. Lifoo is very much Lisp in Forth clothes; to the point where it reuses the Lisp reader to read Lifoo code.
 
 ```
 Lifoo> 1 2 +
@@ -25,7 +25,10 @@ Lifoo> (1 2 +) eval
 
 Lifoo> (1 2 +) compile
 
-(PROGN (LIFOO-PUSH 1) (LIFOO-PUSH 2) (LIFOO-CALL '+))
+(PROGN
+        (LIFOO-PUSH 1)
+        (LIFOO-PUSH 2)
+        (LIFOO-SAFE-CALL [word: + (number number)]))
 
 Lifoo> (1 2 +) compile link
 
@@ -34,98 +37,40 @@ Lifoo> (1 2 +) compile link
 Lifoo> (1 2 +) compile link call
 
 3
-
-Lifoo> (1 2 3) (2 *) map
-
-(2 4 6)
-
-Lifoo> ((1 2 +) (3 4 +) (5 6 +)) (eval) map
-
-(3 7 11)
-
-Lifoo> #(1 2 3) 1 nth 4 set drop
-
-#(1 4 3)
-
-Lifoo> "abc" 1 nth del
-
-"ac"
-
-Lifoo> "~a+~a=~a" (1 2 3) format
-
-"1+2=3"
-
-Lifoo> ((bar -1) baz) :foo struct
-       nil make-foo foo?
-
-T
-
-Lifoo> (:frisbee throw
-        "fail" error)
-       catch
-
-:FRISBEE
-
-Lifoo> 0 chan 
-       (1 2 + send :done)@ 1 spawn swap 
-       recv swap drop swap 
-       wait cons
-
-(:DONE . 3)
-
-Lifoo> (lifoo-push (concatenate 'string
-                             (lifoo-pop)
-                             (lifoo-pop)))@@
-       (string string) :+ define
-       "def" "abc" + 1 2 + cons
-
-(3 . "abcdef")
 ```
 
 ### words
-Forth likes to call functions words, and Lifoo keeps with that tradition. Lifoo comes with a modest but growing, modular set of built-in words. Words can be defined in either Lisp or Lifoo; functions for defining, looking up and un-defining words are also provided. 
+Forth likes to call functions words, and Lifoo keeps with that tradition. Words can be defined from within the language or via the API, using either Lifoo or Lisp.
 
 ```
-Lifoo> (:foo cons)@ () :foo define
+Lifoo> (:foo cons)@ (symbol) :foo define
        :bar foo
-       () :foo word undefine
 
 (:FOO . :BAR)
 
 Lifoo> (lifoo-push (concatenate 'string
                                 (lifoo-pop)
-                                (lifoo-pop)))@@
+                                (lifoo-pop))) lisp $
        (string string) :+ define
-       "def" "abc" + dynamic 1 2 + cons
+       "def" "abc" +
 
-(3 . "abcdef")
+"abcdef"
 
 
-(define-word :array (hash-table) ()
-  list array)
+(define-word :foo (symbol) ()
+  :foo cons)
 
-(define-lisp-word :cmp (nil)
-  (let ((lhs (lifoo-pop))
-        (rhs (lifoo-pop)))
-    (lifoo-push (compare lhs rhs))))
-
-(define-macro-word :@ (in out)
-  (declare (ignore in))
-  (let ((f (first out)))
-    (cons (cons (first f)
-                `(lifoo-push (lambda ()
-                               ,(lifoo-optimize
-                                 :speed (lambda-speed *lifoo*))
-                               ,@(lifoo-compile
-                                  (first (first out))))))
-          (rest out)))))
+(define-lisp-word :+ (string string) ()
+  (lifoo-push (concatenate 'string
+                           (lifoo-pop)
+                           (lifoo-pop))))
 ```
 
 ### repl
-Lifoo provides a basic REPL, the implementation is provided as an example of how to integrate Lifoo into Lisp code.
+A basic REPL is [provided](https://github.com/codr4life/lifoo/blob/master/lifoo.bz2) for playing around with code in real-time.
 
 ```
-LIFOO> (lifoo:lifoo-repl)
+CL-USER> (lifoo-repl:lifoo-repl)
 Welcome to Lifoo,
 press enter on empty line to evaluate,
 exit ends session
@@ -135,44 +80,7 @@ Lifoo> "hello Lifoo!" print ln
 hello Lifoo!
 NIL
 
-Lifoo>
-
-
-(defun lifoo-repl (&key (exec (lifoo-init t :exec (make-lifoo)))
-                        (in *standard-input*)
-                        (out *standard-output*))
-  "Starts a REPL for EXEC with input from IN and output to OUT,
-   using PROMPT"
-
-  (format out "Welcome to Lifoo,~%")
-  (format out "press enter on empty line to evaluate,~%")
-  (format out "exit ends session~%")
-  
-  (with-lifoo (:exec exec)
-    (tagbody
-     start
-       (format out "~%Lifoo> ")
-       (let ((expr (with-output-to-string (expr)
-                      (let ((line))
-                        (do-while
-                            ((not
-                              (string= "" (setf line
-                                                (read-line in
-                                                           nil)))))
-                          (when (string= "exit" line) (go end))
-                          (terpri expr)
-                          (princ line expr))))))
-         (with-input-from-string (in expr)
-           (restart-case
-               (progn
-                 (lifoo-reset)
-                 (lifoo-eval (lifoo-read :in in) :throw? nil)
-                 (write (lifoo-pop) :stream out)
-                 (terpri out))
-             (ignore ()
-               :report "Ignore error and continue.")))
-         (go start))
-     end)))
+Lifoo> exit
 ```
 
 ### tracing
@@ -206,8 +114,8 @@ Lifoo> 3 4 +
 Lifoo> print-trace
 
 LOG   Nothing is traced from here
-EXIT  + #(3)
-ENTER + #(1 2)
+EXIT  + (3)
+ENTER + (2 1)
 LOG   Every :+ entry and exit is traced from here
 NIL
 ```

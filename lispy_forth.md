@@ -1,4 +1,4 @@
-# [vicsy/dev](https://github.com/codr4life/vicsydev) | Lifoo - a Lispy, embedded Forth
+# [vicsy/dev](https://github.com/codr4life/vicsydev) | a Lispy, embedded Forth
 posted Feb 25th 2017, 04:00 pm
 
 ### preramble

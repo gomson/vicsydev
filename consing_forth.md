@@ -1,8 +1,8 @@
-# [vicsy/dev](https://github.com/codr4life/vicsydev) | consing Forth
+# [vicsy/dev](https://github.com/codr4life/vicsydev) | building a Lispy Forth
 posted Feb 25th 2017, 8:00 pm
 
 ### preramble
-In a previous [post](https://github.com/codr4life/vicsydev/blob/master/lispy_forth.md), I presented the humble beginnings of [Lifoo](https://github.com/codr4life/lifoo); a Lispy, Forth-like language implemented and embedded in Common Lisp. This post goes further into specific features and the reasoning behind them. I decided from the start that this was going to be a fresh take on Forth, in the spirit of Lisp; taking nothing for granted; and I ran into plenty of interesting design choices as a result.
+In a previous [post](https://github.com/codr4life/vicsydev/blob/master/lispy_forth.md), I presented the humble beginnings of [Lifoo](https://github.com/codr4life/lifoo); a Lispy, Forth-like language implemented and embedded in Common Lisp. This post goes further into specific features and the reasoning behind them. I decided from the start that this was going to be a fresh take on Forth, in the spirit of Common Lisp; taking nothing for granted; and I ran into plenty of interesting design choices as a result.
 
 ### repl
 If you wan't to play along with the examples, a basic REPL may be started by cloning the [repository](https://github.com/codr4life/lifoo), followed by loading and evaluating ```(lifoo-repl:lifoo-repl)```. Linux binaries are also [provided](https://github.com/codr4life/lifoo#setup).
@@ -21,7 +21,7 @@ Lifoo> exit
 ```
 
 ### reader
-One of the goals set early on in the design process was to reuse the Lisp reader for parsing Lifoo code. Looking back, sticking with this choice was fundamental to achieving a seamless integration since it formed a natural obstacle to deviating too far from Lisp.
+One of the goals set early in the design process was to reuse the Lisp reader for parsing Lifoo code. Looking back, sticking with this choice was fundamental to achieving a seamless integration since it formed a natural obstacle to deviating too far from Lisp.
 
 ```
 Lifoo> "1 2 +" read

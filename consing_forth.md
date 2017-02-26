@@ -2,7 +2,7 @@
 posted Feb 25th 2017, 8:00 pm
 
 ### preramble
-In a previous [post](https://github.com/codr4life/vicsydev/blob/master/lispy_forth.md), I presented the humble beginnings of [Lifoo](https://github.com/codr4life/lifoo); a Lispy, Forth-like language implemented and embedded in Common Lisp. This post goes further into specific features and the reasoning behind them. I decided from the start that this was going to be a fresh take on Forth, in the spirit of Common Lisp; taking nothing for granted; and I ran into plenty of interesting design choices as a result.
+In a previous [post](https://github.com/codr4life/vicsydev/blob/master/lispy_forth.md), I presented the humble beginnings of [Lifoo](https://github.com/codr4life/lifoo); a Lispy, Forth-like language implemented and embedded in Common Lisp. I decided from the start that this was going to be a fresh take on Forth, in the spirit of Common Lisp; taking nothing for granted. This post goes further into specific design choices and the reasoning behind them. 
 
 ### repl
 If you wan't to play along with the examples, a basic REPL may be started by cloning the [repository](https://github.com/codr4life/lifoo), followed by loading and evaluating ```(lifoo-repl:lifoo-repl)```. Linux binaries are also [provided](https://github.com/codr4life/lifoo#setup).
@@ -21,7 +21,7 @@ Lifoo> exit
 ```
 
 ### reader
-One of the goals set early in the design process was to reuse the Lisp reader for parsing Lifoo code. Looking back, sticking with this choice was fundamental to achieving a seamless integration since it formed a natural obstacle to deviating too far from Lisp.
+One of the goals set early in the design process was to reuse Common Lisp's reader for parsing Lifoo code. Looking back, sticking with this choice was fundamental to achieving a seamless integration since it formed a natural obstacle to deviating too far from the source.
 
 ```
 Lifoo> "1 2 +" read
@@ -77,7 +77,7 @@ Lifoo> (1 2 +)@ (3 4 +)@ (5 6 +)@
 ```
 
 ### symbols
-Symbols in the token stream are interpreted as words to be called, a tradition inherited from Forth. Luckily, Common Lisp offers another kind of symbol in the form of keywords.
+Symbols in the token stream are interpreted as words to be called, a tradition inherited from Forth. Luckily, Common Lisp offers another kind of symbol in the form of keywords that come with less conceptual baggage.
 
 ```
 Lifoo> "lifoo" sym
@@ -119,7 +119,7 @@ Lifoo> '(1 2 3) '(1 2 3 4) cmp
 ```
 
 ### setf
-The beauty of ```setf``` is that it untangles specifying a place from setting its value. If you still can't see it; imagine writing a generic function that can set indexes in arrays and replace tails of lists in any other language; then add fields in structs and keys in hash tables; ```setf``` allows you to pull tricks like that without missing a beat; including hooking your own places into the protocol. Lifoo provides a ```set``` word that sets values for any place that implements the protocol.
+The beauty of ```setf``` is that it untangles specifying a place from setting its value. If you still can't see it; imagine writing a generic function that can set items in arrays and replace tails of lists in any other language; then add fields in structs and values for keys in hash tables; ```setf``` allows you to pull tricks like that without missing a beat; including hooking your own places into the protocol. Lifoo provides a ```set``` word that sets values for any place that implements the protocol.
 
 ```
 Lifoo> #(1 2 3) 1 nth 4 set drop

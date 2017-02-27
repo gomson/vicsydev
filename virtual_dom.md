@@ -23,8 +23,8 @@ CL4L-HTML> (let* ((doc (html-doc :title "foobar" :dynamic? t))
 
 <!DOCTYPE html>
 <html>
-<head><title id="G3123">foobar</title></head>
-<body id="G3122"><a href="http://www.foo.com" id="G3124">bar</a></body>
+<head id="G3126"><title id="G3128">foobar</title></head>
+<body id="G3127"><a href="http://www.foo.com" id="G3129">bar</a></body>
 </html>
 ```
 
@@ -130,14 +130,15 @@ The general idea is to only implement the functionality we really need; document
 
 (define-fn html-doc (&key title dynamic?) ()
   "Returns new html-doc with optional TITLE"
-  (let ((doc (make-html-doc :tag "html"
-                            :dynamic? dynamic?)))
+  (let* ((doc (make-html-doc :tag "html"
+                             :dynamic? dynamic?))
+         (head (add-html doc :elem (make-html-head :tag "head"
+                                                   :root doc))))
     (when dynamic?
-      (setf (html-ids doc) (make-hash-table :test 'eq)))
+      (setf (html-ids doc) (make-hash-table :test 'eq)
+            (html-id head) (get-html-id doc head)))
     (setf (html-root doc) doc
-          (html-head doc)
-          (add-html doc :elem (make-html-head :tag "head"
-                                              :root doc))
+          (html-head doc) head
           (html-body doc) (add-html doc :tag "body"))
     (when title
       (html (html-title doc) title))

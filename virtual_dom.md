@@ -8,24 +8,26 @@ One of the tools that I often end up rolling myself is a virtual DOM for re-/gen
 The main reason you may want to consider the virtual DOM approach is that it allows using the full power of your programming language to modularise, generate and update content dynamically. Templates have their uses, but abusing them to implement dynamic content is one of the worst ideas that came out of Rails. Splitting application logic in two parts/languages, one for the server and one for the client; is a massive waste of energy. And writing entire applications in a crappy language to get around the impedance mismatch takes the price for worst idea ever; it doesn't matter how many layers of tooling, JIT-compilers and static typing you pile on top. The first example of a virtual DOM that I came across was in the [Seaside](http://www.seaside.st/) framework, sometime around Y2k; and it ruined me to the point where I briefly considered writing web application servers in [Squeak](http://squeak.org/). Luckily, experience and common sense caught up with me and since then I've been rolling my own whenever not forced to use lesser tools. These days; generating content on the server is even more attractive, since it improves the experience for mobile users enough to turn performance into a feature.
 
 ### a basic example
-The example below generates an HTML document with title and a link, and shows how to use [transactions](https://github.com/codr4life/cl4l#transactions) to roll back changes.
+The example below generates an HTML document with a styled link, and shows how to use [transactions](https://github.com/codr4life/cl4l#transactions) to roll back changes.
 
 ```
 CL4L-HTML> (let* ((doc (html-doc :title "foobar" :dynamic? t))
                   (body (html-body doc))
                   (link (html-a body :id :my-link
-                                     :href "http://www.foo.com")))
-             (html link "bar")
+                                     :href "http://www.foo.com"
+                                     :body "bar")))
+             (setf (html-style link :font-size) "125%")
              (with-trans ()
                (setf (html-attr link :href) "http://www.bar.com")
                (html link "baz" :replace? t)
+               (setf (html-style link :font-size) "200%")
                (rollback))
              (princ (to-html doc)))
 
 <!DOCTYPE html>
 <html>
-<head id="g772"><title id="g774">foobar</title></head>
-<body id="g773"><a href="http://www.bar.com" href="http://www.foo.com" id="my-link">bar</a></body>
+<head id="g855"><title id="g857">foobar</title></head>
+<body id="g856"><a href="http://www.foo.com" id="my-link" style="font-size: 125%">bar</a></body>
 </html>
 ```
 
@@ -177,7 +179,7 @@ The general idea is to only implement the functionality we really need; document
   "Returns attr value for KEY from SELF"
   (rest (find-html-attr self key)))
 
-(define-fn del-html-attr (self key) ()
+(define-fn del-attr (self key) ()
   "Removes attr with KEY from SELF"
   (remove-if (lambda (attr)
                (string= attr key))
@@ -195,7 +197,7 @@ The general idea is to only implement the functionality we really need; document
               (push (lambda ()
                       (if found?
                           (rplacd (find-html-attr self key) prev)
-                          (del-html-attr self key)))
+                          (del-attr self key)))
                     (on-rollback trans))))
           (if found?
               (rplacd found? val)
@@ -207,20 +209,68 @@ The general idea is to only implement the functionality we really need; document
                       (push (cons key prev) (html-attrs self)))
                     (on-rollback trans))))
           (when found?
-            (del-html-attr self key))))))
+            (del-attr self key))))))
 
-(define-fn html-a (self &key href id) ()
-  "Returns a new link with optional HREF"
-  (let ((a (add-html self :tag "a" :id id)))
-    (when href (setf (html-attr a :href) href))
-    a))
+(define-fn find-html-style (self prop) ()
+  "Returns style for PROP in SELF, or NIL if missing"
+  (assoc prop (html-attr self :style) :test #'eq))
+
+(define-fn html-style (self prop) ()
+  "Returns style value for PROP in SELF, or NIL if missing"
+  (rest (find-html-style self prop)))
+
+(define-fn (setf html-style) (val self prop
+                              &key (trans *trans*)) ()
+  "Sets style value for PROP in SELF to VAL in optional TRANS"
+  (let ((found? (find-html-style self prop)))
+    (if found?
+        (progn
+          (when trans
+            (let ((prev (rest found?)))
+              (push (lambda ()
+                      (setf (html-style self prop :trans nil)
+                            prev))
+                    (on-rollback trans))))
+          (rplacd found? val))
+        (push (cons prop val) (html-attr self :style)))))
+
+(define-fn html-a (self &key body href id) ()
+  "Returns new link with optional BODY, HREF and ID"
+  (let ((el (add-html self :tag "a" :id id)))
+    (when href (setf (html-attr el :href) href))
+    (when body (html el body))
+    el))
+
+(define-fn html-h (self level &key body id) ()
+  "Returns new header on LEVEL with optional BODY and ID"
+  (let ((el (add-html self :tag (format nil "h~a" level) :id id)))
+    (when body (html el body))
+    el))
 
 (defgeneric write-attr-html (self out)
   (:documentation
    "Writes HTML for SELF to OUT")
   
+  (:method ((self list) out)
+    (if (list? self)
+        (let ((sep ""))
+          (dolist (it (sort self
+                            #'string<
+                            :key (lambda (x)
+                                   (str! (if (consp x)
+                                             (first x)
+                                             x)))))
+            (write-string sep out)
+            (write-attr-html it out)
+            (setf sep "; ")))
+        (progn
+          (write-attr-html (first self) out)
+          (write-string ": " out)
+          (write-attr-html (rest self) out))))
+  
   (:method ((self string) out)
     (write-string (escape-html-attr self) out))
+  
   (:method (self out)
     (write-attr-html (string-downcase (str! self)) out)))
 
@@ -233,7 +283,10 @@ The general idea is to only implement the functionality we really need; document
       (write-char #\< out)
       (write-string (html-tag self) out)
       
-      (dolist (attr (html-attrs self))
+      (dolist (attr (sort (html-attrs self)
+                          #'string<
+                          :key (lambda (x)
+                                 (symbol-name (first x)))))
         (write-char #\space out)
         (write-string (string-downcase (str! (first attr))) out)
         (write-string "=\"" out)

@@ -1,5 +1,5 @@
 # [vicsy/dev](https://github.com/codr4life/vicsydev) | rolling a virtual DOM
-posted Feb 27th 2017, 06:00 am
+posted Feb 27th 2017, 10:00 am
 
 ### preramble
 One of the tools that I often end up rolling myself is a virtual DOM for re-/generating HTML dynamically. One can hope that spreading the word on their utility will help take some of that weight of my shoulders in the future. A virtual DOM may sound daunting; but we're aiming for utility, not encoding entire standards to the letter. The focus of this post is laying a simple and extensible foundation, with [transaction](https://github.com/codr4life/cl4l#transactions) support thrown in as a hint of what's to come.

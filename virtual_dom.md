@@ -44,6 +44,40 @@ The general idea is to only implement the functionality we really need; document
                      (:conc-name html-))
   head body)
 
+(define-fn escape-char (ch) ()
+  "Returns escape code for CH"
+  (case ch
+    (#\& "&amp;")
+    (#\< "&lt;")
+    (#\> "&gt;")
+    (#\' "&apos;")
+    (#\" "&quot;")
+    (t (format nil "&#~d;" (char-code ch)))))
+
+(define-fn escape (in chars) ()
+  "Returns IN with escaped CHARS"
+  (with-output-to-string (out)
+    (flet ((escape? (ch) (find ch chars)))
+      (let ((start 0) pos)
+        (do-while ((setf pos
+                         (position-if #'escape? in
+                                      :start start)))
+          (write-sequence in out :start start :end pos)
+          (write-sequence (escape-char (char in pos)) out)
+          (setf start (1+ pos)))
+        
+        (let ((len (length in)))
+          (when (< start len)
+            (write-sequence in out :start start :end pos)))))))
+
+(define-fn escape-html (in) ()
+  "Returns IN with escaped html chars"
+  (escape in "<>&"))
+
+(define-fn escape-html-attr (in) ()
+  "Returns IN with escaped attr chars"
+  (escape in "<>&\"'"))
+
 (define-fn add-html (self
                      &key tag
                      (elem (make-html :tag tag))
@@ -66,9 +100,14 @@ The general idea is to only implement the functionality we really need; document
             (on-rollback trans))))
   (setf (html-elems self) nil))
 
-(define-fn html-text (self text &key replace? (trans *trans*)) ()
+(define-fn html-text (self text
+                      &key (escape? t)
+                      replace? (trans *trans*)) ()
   (when replace? (html-clear self :trans trans))
-  (add-html self :elem text :trans trans))
+  (add-html self :elem (if escape?
+                           (escape-html text)
+                           text)
+                 :trans trans))
 
 (define-fn html (tag) ()
   "Returns new html instance with TAG"
@@ -100,9 +139,12 @@ The general idea is to only implement the functionality we really need; document
   "Returns attr value for KEY from SELF"
   (rest (html-find-attr self key)))
 
-(define-fn (setf html-attr) (val self key &key (trans *trans*)) ()
+(define-fn (setf html-attr) (val self key
+                             &key (escape? t)
+                             (trans *trans*)) ()
   "Sets attr value for KEY in SELF to VAL in optional TRANS"
-  (let ((found? (html-find-attr self key)))
+  (let ((found? (html-find-attr self key))
+        (v (if escape? (escape-html-attr val) val)))
     (when trans
       (let ((prev (rest found?)))
         (push (lambda ()
@@ -113,10 +155,9 @@ The general idea is to only implement the functionality we really need; document
                                (html-attrs self)
                                :key #'first)))
               (on-rollback trans))))
-    
     (if found?
-        (rplacd found? val)
-        (push (cons key val) (html-attrs self)))))
+        (rplacd found? v)
+        (push (cons key v) (html-attrs self)))))
 
 (define-fn html-a (self &key href) ()
   "Returns a new link with optional HREF"

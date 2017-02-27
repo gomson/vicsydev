@@ -33,6 +33,7 @@ The general idea is to only implement the functionality we really need; document
 
 ```
 (defstruct (html)
+  owner
   (tag (error "missing tag") :type string)
   (attrs nil :type list)
   (elems nil :type list))
@@ -80,7 +81,7 @@ The general idea is to only implement the functionality we really need; document
 
 (define-fn add-html (self
                      &key tag
-                     (elem (make-html :tag tag))
+                     (elem (make-html :tag tag :owner self))
                      (trans *trans*)) ()
   "Adds ELEM to SELF in optional TRANS"
   (when trans
@@ -109,17 +110,14 @@ The general idea is to only implement the functionality we really need; document
                            text)
                  :trans trans))
 
-(define-fn html (tag) ()
-  "Returns new html instance with TAG"
-  (make-html :tag tag))
-
 (define-fn html-doc (&key title) ()
   "Returns new html-doc with optional TITLE"
   (let ((doc (make-html-doc :tag "html")))
     (setf (html-head doc)
-          (add-html doc :elem (make-html-head :tag "head"))
+          (add-html doc :elem (make-html-head :tag "head"
+                                              :owner doc))
           (html-body doc)
-          (add-html doc :elem (html "body")))
+          (add-html doc :tag "body"))
     (when title
       (html-text (html-title doc) title))
     doc))
@@ -161,7 +159,7 @@ The general idea is to only implement the functionality we really need; document
 
 (define-fn html-a (self &key href) ()
   "Returns a new link with optional HREF"
-  (let ((a (add-html self :elem (html "a"))))
+  (let ((a (add-html self :tag "a")))
     (when href (setf (html-attr a "href") href))
     a))
 

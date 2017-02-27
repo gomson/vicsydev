@@ -94,7 +94,6 @@ The general idea is to only implement the functionality we really need; document
   (rest (html-find-attr self key)))
 
 (define-fn (setf html-attr) (val self key &key (trans *trans*)) ()
-  (declare (type simple-base-string key))
   (let ((found? (html-find-attr self key)))
     (when trans
       (let ((prev (rest found?)))
@@ -102,10 +101,7 @@ The general idea is to only implement the functionality we really need; document
                 (if found?
                     (rplacd (html-find-attr self key) prev)
                     (remove-if (lambda (attr)
-                                 (let ((k (first attr)))
-                                   (declare
-                                    (type simple-base-string k))
-                                   (string= k key)))
+                                 (string= (first attr) key))
                                (html-attrs self))))
               (on-rollback trans))))
     

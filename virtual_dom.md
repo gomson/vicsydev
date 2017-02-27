@@ -48,6 +48,7 @@ The general idea is to only implement the functionality we really need; document
                      &key tag
                      (elem (make-html :tag tag))
                      (trans *trans*)) ()
+  "Adds ELEM to SELF in optional TRANS"
   (when trans
     (push (lambda ()
             (pop (html-elems self)))
@@ -57,6 +58,7 @@ The general idea is to only implement the functionality we really need; document
   elem)
 
 (define-fn html-clear (self &key (trans *trans*)) ()
+  "Clears SELF elems in optional TRANS"
   (when trans
     (let ((elems (html-elems self)))
       (push (lambda ()
@@ -69,9 +71,11 @@ The general idea is to only implement the functionality we really need; document
   (add-html self :elem text :trans trans))
 
 (define-fn html (tag) ()
+  "Returns new html instance with TAG"
   (make-html :tag tag))
 
 (define-fn html-doc (&key title) ()
+  "Returns new html-doc with optional TITLE"
   (let ((doc (make-html-doc :tag "html")))
     (setf (html-head doc)
           (add-html doc :elem (make-html-head :tag "head"))
@@ -82,18 +86,22 @@ The general idea is to only implement the functionality we really need; document
     doc))
 
 (define-fn html-title (self) ()
+  "Lazy-initialises and returns title for SELF"
   (let ((head (html-head self)))
     (or (html-head-title head)
         (setf (html-head-title head)
               (add-html head :tag "title")))))
 
 (define-fn html-find-attr (self key) ()
+  "Returns attr with KEY from SELF"
   (assoc key (html-attrs self) :test #'string=))
 
 (define-fn html-attr (self key) ()
+  "Returns attr value for KEY from SELF"
   (rest (html-find-attr self key)))
 
 (define-fn (setf html-attr) (val self key &key (trans *trans*)) ()
+  "Sets attr value for KEY in SELF to VAL in optional TRANS"
   (let ((found? (html-find-attr self key)))
     (when trans
       (let ((prev (rest found?)))
@@ -111,11 +119,15 @@ The general idea is to only implement the functionality we really need; document
         (push (cons key val) (html-attrs self)))))
 
 (define-fn html-a (self &key href) ()
+  "Returns a new link with optional HREF"
   (let ((a (add-html self :elem (html "a"))))
     (when href (setf (html-attr a "href") href))
     a))
 
-(defgeneric write-html (self out &key)
+(defgeneric write-html (self out &key pretty?)
+  (:documentation
+   "Writes HTML for SELF to OUT, with formatting if PRETTY?")
+  
   (:method ((self html) out &key (pretty? t))
     (define-body ()
       (write-char #\< out)
@@ -124,8 +136,7 @@ The general idea is to only implement the functionality we really need; document
       (dolist (attr (html-attrs self))
         (write-char #\space out)
         (write-string (first attr) out)
-        (write-char #\= out)
-        (write-char #\" out)
+        (write-string "=\"" out)
         (princ (rest attr) out)
         (write-char #\" out))
       
@@ -137,9 +148,8 @@ The general idea is to only implement the functionality we really need; document
             (when br? (terpri out))
             (dolist (elem (reverse elems))
               (write-html elem out :pretty? pretty?)
-              (when br? (terpri out))))
-          (write-char #\< out)
-          (write-char #\/ out)
+              (when br? (terpri out))))          
+          (write-string "</" out)
           (write-string (html-tag self) out)
           (write-char #\> out)))))
 
@@ -153,6 +163,7 @@ The general idea is to only implement the functionality we really need; document
     (write-string self out)))
 
 (define-fn to-html (self &key (pretty? t)) ()
+  "Returns HTML for SELF, with formatting if PRETTY?"
   (with-output-to-string (out)
     (write-html self out :pretty? pretty?)))
 ```

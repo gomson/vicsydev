@@ -11,7 +11,7 @@ The main reason you may want to consider the virtual DOM approach is that it all
 The example below generates an HTML document with title and a link, and shows how to use [transactions](https://github.com/codr4life/cl4l#transactions) to roll back changes.
 
 ```
-CL4L-HTML> (let* ((doc (html-doc :title "foobar"))
+CL4L-HTML> (let* ((doc (html-doc :title "foobar" :dynamic? t))
                   (body (html-body doc))
                   (link (html-a body :href "http://www.foo.com")))
              (html-text link "bar")
@@ -23,8 +23,8 @@ CL4L-HTML> (let* ((doc (html-doc :title "foobar"))
 
 <!DOCTYPE html>
 <html>
-<head><title>foobar</title></head>
-<body><a href="http://www.foo.com">bar</a></body>
+<head><title id="G3123">foobar</title></head>
+<body id="G3122"><a href="http://www.foo.com" id="G3124">bar</a></body>
 </html>
 ```
 
@@ -33,7 +33,7 @@ The general idea is to only implement the functionality we really need; document
 
 ```
 (defstruct (html)
-  owner
+  root
   (tag (error "missing tag") :type string)
   (attrs nil :type list)
   (elems nil :type list))
@@ -43,7 +43,8 @@ The general idea is to only implement the functionality we really need; document
 
 (defstruct (html-doc (:include html)
                      (:conc-name html-))
-  head body)
+  head body
+  ids dynamic?)
 
 (define-fn escape-char (ch) ()
   "Returns escape code for CH"
@@ -55,7 +56,7 @@ The general idea is to only implement the functionality we really need; document
     (#\" "&quot;")
     (t (format nil "&#~d;" (char-code ch)))))
 
-(define-fn escape (in chars) ()
+(define-fn escape (in chars) (:speed 1)
   "Returns IN with escaped CHARS"
   (with-output-to-string (out)
     (flet ((escape? (ch) (find ch chars)))
@@ -79,16 +80,33 @@ The general idea is to only implement the functionality we really need; document
   "Returns IN with escaped attr chars"
   (escape in "<>&\"'"))
 
+(define-fn get-html-id (self elem) ()
+  (let ((id (gensym)))
+    (setf (gethash id (html-ids self))
+          elem)
+    id))
+
+(define-fn html-id (self) ()
+  (html-attr self "id"))
+
+(define-fn (setf html-id) (val self) ()
+  (setf (html-attr self "id") val))
+
 (define-fn add-html (self
-                     &key tag
-                     (elem (make-html :tag tag :owner self))
+                     &key elem id tag
+                     (root (html-root self))
                      (trans *trans*)) ()
   "Adds ELEM to SELF in optional TRANS"
+  
   (when trans
     (push (lambda ()
             (pop (html-elems self)))
           (on-rollback trans)))
-  
+  (unless elem
+    (setf elem (make-html :tag tag
+                          :root root))
+    (when (html-dynamic? root)
+      (setf (html-id elem) (or id (get-html-id root elem)))))
   (push elem (html-elems self))
   elem)
 
@@ -101,25 +119,28 @@ The general idea is to only implement the functionality we really need; document
             (on-rollback trans))))
   (setf (html-elems self) nil))
 
-(define-fn html-text (self text
-                      &key (escape? t)
-                      replace? (trans *trans*)) ()
+(define-fn html (self text
+                 &key (escape? t)
+                 replace? (trans *trans*)) ()
   (when replace? (html-clear self :trans trans))
   (add-html self :elem (if escape?
                            (escape-html text)
                            text)
                  :trans trans))
 
-(define-fn html-doc (&key title) ()
+(define-fn html-doc (&key title dynamic?) ()
   "Returns new html-doc with optional TITLE"
-  (let ((doc (make-html-doc :tag "html")))
-    (setf (html-head doc)
+  (let ((doc (make-html-doc :tag "html"
+                            :dynamic? dynamic?)))
+    (when dynamic?
+      (setf (html-ids doc) (make-hash-table :test 'eq)))
+    (setf (html-root doc) doc
+          (html-head doc)
           (add-html doc :elem (make-html-head :tag "head"
-                                              :owner doc))
-          (html-body doc)
-          (add-html doc :tag "body"))
+                                              :root doc))
+          (html-body doc) (add-html doc :tag "body"))
     (when title
-      (html-text (html-title doc) title))
+      (html (html-title doc) title))
     doc))
 
 (define-fn html-title (self) ()
@@ -138,11 +159,9 @@ The general idea is to only implement the functionality we really need; document
   (rest (html-find-attr self key)))
 
 (define-fn (setf html-attr) (val self key
-                             &key (escape? t)
-                             (trans *trans*)) ()
+                             &key (trans *trans*)) (:speed 1)
   "Sets attr value for KEY in SELF to VAL in optional TRANS"
-  (let ((found? (html-find-attr self key))
-        (v (if escape? (escape-html-attr val) val)))
+  (let ((found? (html-find-attr self key)))
     (when trans
       (let ((prev (rest found?)))
         (push (lambda ()
@@ -154,14 +173,20 @@ The general idea is to only implement the functionality we really need; document
                                :key #'first)))
               (on-rollback trans))))
     (if found?
-        (rplacd found? v)
-        (push (cons key v) (html-attrs self)))))
+        (rplacd found? val)
+        (push (cons key val) (html-attrs self)))))
 
 (define-fn html-a (self &key href) ()
   "Returns a new link with optional HREF"
   (let ((a (add-html self :tag "a")))
     (when href (setf (html-attr a "href") href))
     a))
+
+(defgeneric write-attr-html (self out)
+  (:method ((self string) out)
+    (write-string (escape-html-attr self) out))
+  (:method (self out)
+    (write-attr-html (str! self) out)))
 
 (defgeneric write-html (self out &key pretty?)
   (:documentation
@@ -176,7 +201,7 @@ The general idea is to only implement the functionality we really need; document
         (write-char #\space out)
         (write-string (first attr) out)
         (write-string "=\"" out)
-        (princ (rest attr) out)
+        (write-attr-html (rest attr) out)       
         (write-char #\" out))
       
       (let ((elems (html-elems self)))

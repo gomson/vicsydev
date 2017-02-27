@@ -17,15 +17,15 @@ CL4L-HTML> (let* ((doc (html-doc :title "foobar" :dynamic? t))
                                      :href "http://www.foo.com")))
              (html link "bar")
              (with-trans ()
-               (setf (html-attr link "href") "http://www.bar.com")
+               (setf (html-attr link :href) "http://www.bar.com")
                (html link "baz" :replace? t)
                (rollback))
              (princ (to-html doc)))
 
 <!DOCTYPE html>
 <html>
-<head id="g836"><title id="g838">foobar</title></head>
-<body id="g837"><a href="http://www.foo.com" id="my-link">bar</a></body>
+<head id="g772"><title id="g774">foobar</title></head>
+<body id="g773"><a href="http://www.bar.com" href="http://www.foo.com" id="my-link">bar</a></body>
 </html>
 ```
 
@@ -86,13 +86,13 @@ The general idea is to only implement the functionality we really need; document
    "Returns id attribute from SELF")
   
   (:method ((self html))
-    (html-attr self "id"))
+    (html-attr self :id))
   (:method ((self string))
     nil))
 
 (define-fn (setf html-id) (val self) ()
   "Sets id attribute to VAL in SELF"
-  (setf (html-attr self "id") val))
+  (setf (html-attr self :id) val))
 
 (define-fn add-html-id (self id elem) ()
   "Registers ELEM for ID in SELF"
@@ -171,7 +171,7 @@ The general idea is to only implement the functionality we really need; document
 
 (define-fn find-html-attr (self key) ()
   "Returns attr with KEY from SELF"
-  (assoc key (html-attrs self) :test #'string=))
+  (assoc key (html-attrs self) :test #'eq))
 
 (define-fn html-attr (self key) ()
   "Returns attr value for KEY from SELF"
@@ -212,7 +212,7 @@ The general idea is to only implement the functionality we really need; document
 (define-fn html-a (self &key href id) ()
   "Returns a new link with optional HREF"
   (let ((a (add-html self :tag "a" :id id)))
-    (when href (setf (html-attr a "href") href))
+    (when href (setf (html-attr a :href) href))
     a))
 
 (defgeneric write-attr-html (self out)
@@ -235,9 +235,9 @@ The general idea is to only implement the functionality we really need; document
       
       (dolist (attr (html-attrs self))
         (write-char #\space out)
-        (write-string (first attr) out)
+        (write-string (string-downcase (str! (first attr))) out)
         (write-string "=\"" out)
-        (write-attr-html (rest attr) out)       
+        (write-attr-html (rest attr) out)
         (write-char #\" out))
       
       (let ((elems (html-elems self)))

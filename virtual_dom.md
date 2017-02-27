@@ -101,8 +101,9 @@ The general idea is to only implement the functionality we really need; document
                 (if found?
                     (rplacd (html-find-attr self key) prev)
                     (remove-if (lambda (attr)
-                                 (string= (first attr) key))
-                               (html-attrs self))))
+                                 (string= attr key))
+                               (html-attrs self)
+                               :key #'first)))
               (on-rollback trans))))
     
     (if found?

@@ -1,5 +1,5 @@
-# [vicsy/dev](https://github.com/codr4life/vicsydev) | syncing a virtual DOM
-posted Feb 28th 2017, 4:00 am
+# [vicsy/dev](https://github.com/codr4life/vicsydev) | syncing the virtual DOM
+posted Feb 28th 2017, 4:00 pm
 
 ### preramble
 A [virtual DOM](https://github.com/codr4life/vicsydev/blob/master/virtual_dom.md) in itself has several use cases where content is relatively static once generated but the process still gains from a structured approach to generating it. And since nodes in the DOM are addressable; may have their content updated, and their HTML re-generated; all the pieces are already in place. Separating concerns this way allows user code to decide how much control it wants to trade for convenience.
@@ -9,23 +9,30 @@ Documents track updates when ```dynamic?``` is true. Each element keeps track of
 
 ```
 CL4L-HTML> (let* ((doc (html-doc :dynamic? t))
-                  (body (html-body doc))
-                  (hdr (html-h body 1 :id :hdr :body "foo")))
-             (setf (html-update? hdr) t)
-             (html-empty hdr)
-             (setf (html-id hdr) :foo-hdr)
-             (html-a hdr :id :lnk
-                         :href "http://www.foo.com"
-                         :body "click me")
+                  (body (html-body doc)))
+             (html-script doc :id :jquery-js :src "scripts/jquery.js")
+             (princ (to-html doc))
+
+             (let ((hdr (html-h body 1 :id :hdr :body "foo")))
+               (setf (html-style hdr :text-decoration) "underline")
+               (html-a hdr :id :lnk
+                           :href "http://www.foo.com"
+                           :body "click me"))
+    
              (princ (html-update-script doc)))
 
-$('#hdr').empty();
-$('#hdr').attr('id', 'foo-hdr');
-$('#foo-hdr').append('<a href="http://www.foo.com" id="lnk">click me</a>');
+<!DOCTYPE html>
+<html>
+<head id="head"><script id="jquery-js" src="scripts/jquery.js"></script></head>
+<body id="body"/>
+</html>$('#body').append('<h1 id="hdr">foo</h1>');
+
+$('#hdr').attr('style', 'text-decoration: underline');
+$('#hdr').append('<a href="http://www.foo.com" id="lnk">click me</a>');
 ```
  
 ### implementation
-Logging updates when the virtual DOM is modified may not be as impressive as diffing and working backwards; but from most other aspects it is superior. Having access to both aspects of HTML generation at the same time, and the option of going back and forth at any granularity; while still retaining the possibility for full automation; is clearly the more powerful approach.
+We're going to side-step the complexity of diffing content by simply logging updates when the virtual DOM is modified; this also fits better with the stated goal of supporting both static, dynamic and mixed HTML-generating scenarios. Included below are the parts of the implementation that deal with updates in any way; the actual update is performed by calling ```(update-html root "...")```. Please excuse the use of ```define-fn``` and ```define-body```; the reason for their presence is to enable gradual, whole-system [optimisation](https://github.com/codr4life/cl4l/blob/master/cl4l.lisp).
 
 ```
 (defstruct (html)
@@ -61,12 +68,12 @@ Logging updates when the virtual DOM is modified may not be as impressive as dif
   (when (html-update? self)
     (if (and (html-p elem) (html-update? elem))
         (update-html root
-                     "$('#~a').append($('#~a'));"
-                     (html-sid self) (html-sid elem))
+                     "$(~a).append($(~a));"
+                     (html-js-id self) (html-js-id elem))
         (progn
           (update-html root
-                       "$('#~a').append('~a');"
-                       (html-sid self) (to-html elem))
+                       "$(~a).append('~a');"
+                       (html-js-id self) (to-html elem))
           (when (html-p elem)
             (setf (html-update? elem) t)))))
 
@@ -83,8 +90,8 @@ Logging updates when the virtual DOM is modified may not be as impressive as dif
   
   (when (html-update? self)
     (update-html (html-root self)
-                 "$('#~a').empty();"
-                 (html-sid self)))
+                 "$(~a).empty();"
+                 (html-js-id self)))
   
   (setf (html-elems self) nil))
 
@@ -105,11 +112,10 @@ Logging updates when the virtual DOM is modified may not be as impressive as dif
 
           (when (and (html-update? self) (html-dynamic? root))
             (update-html root
-                         "$('#~a').attr('~a', '~a');"
-                         (html-sid self)
+                         "$(~a).attr('~a', ~a);"
+                         (html-js-id self)
                          (string-downcase (str! key))
-                         (with-output-to-string (out)
-                           (write-html-attr val out))))
+                         (encode-html-attr-js key val)))
 
           (if found?
               (rplacd found? val)
@@ -123,8 +129,8 @@ Logging updates when the virtual DOM is modified may not be as impressive as dif
 
           (when (and (html-update? self) (html-dynamic? root))
             (update-html root
-                         "$('#~a').removeAttr('~a');"
-                         (html-sid self)
+                         "$(~a).removeAttr('~a');"
+                         (html-js-id self)
                          (string-downcase (str! key))))
 
           (when found?
@@ -151,9 +157,11 @@ Logging updates when the virtual DOM is modified may not be as impressive as dif
                           :key (lambda (x)
                                  (symbol-name (first x)))))
         (write-char #\space out)
-        (write-string (string-downcase (str! (first attr))) out)
-        (write-string "=\"" out)
-        (write-html-attr (rest attr) out)
+        (let ((key (first attr)))
+          (write-string (string-downcase (str! key)) out)
+          (write-string "=\"" out)
+          (write-string (encode-html-attr key (rest attr))
+                        out))
         (write-char #\" out))
       
       (let ((elems (html-elems self)))
@@ -192,6 +200,7 @@ Logging updates when the virtual DOM is modified may not be as impressive as dif
   "Returns update script for SELF"
   (with-output-to-string (out)
     (write-html-updates self out :pretty? pretty?)))
+
 ```
 
 You may find more in the same spirit [here](http://vicsydev.blogspot.de/) and [here](https://github.com/codr4life/vicsydev), and a full implementation of this idea and more [here](https://github.com/codr4life/cl4l).

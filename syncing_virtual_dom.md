@@ -1,8 +1,8 @@
- # [vicsy/dev](https://github.com/codr4life/vicsydev) | syncing a virtual DOM
+# [vicsy/dev](https://github.com/codr4life/vicsydev) | syncing a virtual DOM
 posted Feb 28th 2017, 4:00 am
 
 ### preramble
-A [virtual DOM](https://github.com/codr4life/vicsydev/blob/master/virtual_dom.md) in itself has several use cases where the content is static once generated but the process still gains from a more structured approach to generating it. And since nodes in the DOM are addressable; may have their content updated, and their HTML re-generated; all the pieces are already in place. Separating concerns this way allows user code to decide how much control it wants to trade for convenience.
+A [virtual DOM](https://github.com/codr4life/vicsydev/blob/master/virtual_dom.md) in itself has several use cases where content is relatively static once generated but the process still gains from a structured approach to generating it. And since nodes in the DOM are addressable; may have their content updated, and their HTML re-generated; all the pieces are already in place. Separating concerns this way allows user code to decide how much control it wants to trade for convenience.
  
 ### use
 Documents track updates when ```dynamic?``` is true. Each element keeps track of it's own ```update?``` status, which is set to true once the element has it's HTML generated. ```html-update-script``` returns a script containing the jQuery incantations needed to update the browser with all changes since last call. 

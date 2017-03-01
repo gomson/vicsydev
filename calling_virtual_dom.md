@@ -61,8 +61,8 @@ CL4L-HTML> (let* ((doc (html-doc :dynamic? t :call-url "foobar"))
              
 <!DOCTYPE html>
 <html>
-  <head id="head">
-    <script id="init-script">
+  <head id="cl4l-head">
+    <script id="cl4l-init-script">
       $(function() {
         cl4l.url = 'foobar';
         $('#name').on('change', function() {
@@ -71,7 +71,7 @@ CL4L-HTML> (let* ((doc (html-doc :dynamic? t :call-url "foobar"))
       });
     </script>
 </head>
-<body id="body">
+<body id="cl4l-body">
   <input id="name" type="text"/>
   <button id="hello" onclick="cl4l.call('hello', 'onclick');">Hello</button>
 </body>

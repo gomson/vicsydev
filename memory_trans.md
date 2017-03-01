@@ -5,9 +5,9 @@ posted Feb 21st 2017, 10:00 pm
 Transactional memory is most often mentioned in the context of multi-threaded programming, where the reason the system tracks memory access is to prevent corruption. Another kind of transactional memory is the database, SQL or otherwise; one of the main reasons they exist is to provide transactions over data. Transactions are useful in many contexts where not commonly reached for; [transactional collections](https://github.com/codr4life/cl4l#indexes) offer a nice compromise between primitive collections and databases, and the world would be a better place if more undo facilities tracked change sets rather than individual changes.
 
 ### the case for embedded languages
-Implementing general purpose transactional memory from the inside is mostly impossible, there's just no way to hook into the system deep enough to capture all possibilities without ending up replacing every single part of the language that is covered. One of the motives for embedding higher a level language like [Lifoo](https://github.com/codr4life/lifoo) into a general purpose language like Common Lisp is the added leverage you get from mastering your environment.
+Implementing general purpose transactional memory from the inside is mostly impossible, there's just no way to hook into the system deep enough to capture all possibilities without ending up replacing every single part of the language that is covered. One of the motives for embedding a higher level language like [Lifoo](https://github.com/codr4life/lifoo) into a general purpose language like Common Lisp is the added leverage you get from mastering your environment.
 
-### transctions
+### transactions
 [Lifoo](https://github.com/codr4life/lifoo) provides memory transactions that track updates to the stack, any place that can be [set](https://github.com/codr4life/vicsydev/blob/master/consing_forth.md#setf) or [deleted](https://github.com/codr4life/vicsydev/blob/master/consing_forth.md#del); and the word dictionary. Transactions may be committed and rolled back several times during their lives, and are reset each time.
 
 ```
@@ -63,7 +63,7 @@ Lifoo> drop drop 42 $
 ```
 
 ### implementation
-Since [Lifoo](https://github.com/codr4life/lifoo) uses separate instances and channels for multi-threaded programming, and has no need for protection against memory corruption; it simply logs closures for rolling back changes reverse order.
+Since [Lifoo](https://github.com/codr4life/lifoo) uses separate instances and channels for multi-threaded programming, and has no need for protection against memory corruption; it simply logs closures for rolling back changes in reverse order.
 
 ```
 (defstruct (lifoo-cell (:conc-name cell-))

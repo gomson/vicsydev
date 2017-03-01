@@ -38,7 +38,7 @@ var cl4l = {
 Callbacks are stored in lists, hashed by element- and event id; any number of callbacks may be registered for the same element/event. Calling ```html-call``` with an alist of params on each request and making sure the update script reaches the client is left in the hands of user code.
 
 ```
-CL4L-HTML> (let* ((doc (html-doc :dynamic? t :url "foobar"))
+CL4L-HTML> (let* ((doc (html-doc :dynamic? t :call-url "foobar"))
                   (body (html-body doc))
                   (input (html-input body :id :name :type :text)))
        

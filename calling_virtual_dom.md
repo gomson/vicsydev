@@ -62,7 +62,7 @@ CL4L-HTML> (let* ((doc (html-doc :dynamic? t :call-url "foobar"))
 <!DOCTYPE html>
 <html>
   <head id="cl4l-head">
-    <script id="cl4l-init-script">
+    <script id="cl4l-init">
       $(function() {
         cl4l.url = 'foobar';
         $('#name').on('change', function() {

@@ -26,4 +26,6 @@ Of course we can judge other humans from their actions. The more authority the p
 
 This is pure censoring from any perspective, to protect the private interests of powerful individuals against the people; not exactly the kind of behaviour you expect to see from a supposedly forward-striving, technology-oriented site like Hacker News. Maybe it's about time they renamed the site to better fit the new direction.
 
+While I realise that stepping on these kinds of toes in public will potentially get me into an epic shit storm; I'm a firm believer in transparency as an antidote to injustice and bullying; anything less just leaves the whole mess for the next person to clean up.
+
 peace, out

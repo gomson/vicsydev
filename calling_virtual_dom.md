@@ -2,7 +2,7 @@
 posted March 1st 2017, 2:00 am
 
 ### preramble
-The virtual DOM implementation described in [previous](https://github.com/codr4life/vicsydev/blob/master/virtual_dom.md) [posts](https://github.com/codr4life/vicsydev/blob/master/syncing_virtual_dom.md) is almost feature complete, the only missing piece is callbacks.
+The virtual DOM implementation described in [previous](https://github.com/codr4life/vicsydev/blob/master/virtual_dom.md) [posts](https://github.com/codr4life/vicsydev/blob/master/syncing_virtual_dom.md) is 2/3 feature complete, the only missing piece of the puzzle is callbacks.
 
 ### piggy-backing
 Piggy-backing modifications from the browser on the next request made to the server is a solid approach from my experience. I have yet to run into a case where the reason the server is interested in updates isn't tied to a callback being executed. Inputs are automatically hooked up to log their modifications. A minimal run-time is included to simplify the generated code; this script has to be included in dynamic documents, how that happens is up to user code.
@@ -62,13 +62,14 @@ CL4L-HTML> (let* ((doc (html-doc :dynamic? t :url "foobar"))
 <!DOCTYPE html>
 <html>
   <head id="head">
-    <script id="init-script">$(function() {
-      cl4l.url = 'foobar';
-      $('#name').on('change', function() {
-        cl4l.update(this.id, this.value);
+    <script id="init-script">
+      $(function() {
+        cl4l.url = 'foobar';
+        $('#name').on('change', function() {
+          cl4l.update(this.id, this.value);
+        });
       });
-    });
-  </script>
+    </script>
 </head>
 <body id="body">
   <input id="name" type="text"/>

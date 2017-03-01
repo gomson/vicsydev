@@ -24,7 +24,7 @@ Because this type of comment is not welcome here, I'm going to kill this one now
 Please don't vent on HN.
 ```
 
-Since that reply, I haven't been able to post any replies in the thread. Which is of course helping the Travis apologising groupies free space to twist the discussion and contain the damage done, since no one else will step up after seeing me get banned for expressing my view.
+Since that reply, I've been unable to post anything to the site; despite a long history of popular original content posted. Which is effectively giving the Travis apologising groupies free space to twist the discussion and contain the damage done, since no one else will step up after seeing me get banned for expressing my view.
 
 Of course we can judge other humans from their actions. The more authority a person has, and the more serious the consequences of their actions; the more imperative that they *are* judged from their actions, rather than the words of their PR departments and wishful thinking.
 

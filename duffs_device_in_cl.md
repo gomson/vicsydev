@@ -1,4 +1,4 @@
-# [vicsy/dev](https://github.com/codr4life/vicsydev) | Faster Green Threads with Duff's Device
+# [vicsy/dev](https://github.com/codr4life/vicsydev) | Lispy, cooperative tasks based on Duff's Device
 posted Feb 17th 2017, 01:00am
 
 ### preramble

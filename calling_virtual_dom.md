@@ -5,7 +5,7 @@ posted March 1st 2017, 2:00 am
 The virtual DOM implementation described in [previous](https://github.com/codr4life/vicsydev/blob/master/virtual_dom.md) [posts](https://github.com/codr4life/vicsydev/blob/master/syncing_virtual_dom.md) is almost ready for prime time, the only missing piece of the puzzle is callbacks.
 
 ### piggy-backing
-Piggy-backing modifications from the browser on the next request made to the server, and then piggy-backing updates to be applied on the response; is a solid approach from my experience. I have yet to run into a case where the reason the server is interested in updates isn't tied to a callback being executed, or the client needs an update without any action on the servers part. Inputs are automatically hooked up to log their modifications. A minimal run-time is included to simplify the generated code; this script has to be included in dynamic documents, how that happens is up to user code.
+Piggy-backing modifications from the browser on the next request made to the server, and then piggy-backing updates to be applied on the response; is a solid approach from my experience. I have yet to run into a case where the reason any side is interested in updates isn't tied to a callback being executed. Inputs are automatically hooked up to log their modifications. A minimal run-time is included to simplify the generated code; this script has to be included in dynamic documents, how that happens is up to user code.
 
 ```
 var cl4l = {

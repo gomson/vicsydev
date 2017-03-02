@@ -2,7 +2,7 @@
 posted March 1st 2017, 11:00 pm
 
 ### preramble
-It's time to take the virtual DOM implementation [described](https://github.com/codr4life/vicsydev/blob/master/virtual_dom.md) in [previous](https://github.com/codr4life/vicsydev/blob/master/syncing_virtual_dom.md) [posts](https://github.com/codr4life/vicsydev/blob/master/calling_virtual_dom.md) for a first spin. We will use Hunchentoot to implement the HTTP end points.
+It's time to take the virtual DOM implementation [described](https://github.com/codr4life/vicsydev/blob/master/virtual_dom.md) in [previous](https://github.com/codr4life/vicsydev/blob/master/syncing_virtual_dom.md) [posts](https://github.com/codr4life/vicsydev/blob/master/calling_virtual_dom.md) for a first spin. We will use [Hunchentoot](http://weitz.de/hunchentoot/) to implement the HTTP end points.
 
 ### callbacks
 The first thing we need to do is set up an end point for DOM callbacks from the browser. Any URL will do, as long as the same string is passed as ```:call-url``` when creating DOM documents. ```html-call``` expects parameter names to be keywords, which is the reason for mapping.

@@ -24,12 +24,10 @@ Because this type of comment is not welcome here, I'm going to kill this one now
 Please don't vent on HN.
 ```
 
-Since that reply, I've been unable to post anything to the site; despite a long history of posting popular original content. Which is effectively giving the Travis apologising groupies free space to twist the discussion and contain the damage done, since no one else will step up after seeing someone get banned for expressing their view.
+Since that reply, I've been unable to post anything to the site; despite a long history of first page hits with original content. Which is effectively giving the Travis apologising groupies free space to twist the discussion and contain the damage done, since no one else will step up after seeing someone get banned for expressing their view.
 
 Of course we can judge other humans from their actions. The more authority a person has, and the more serious the consequences of their actions; the more imperative that they *are* judged from their actions, rather than the words of their PR departments and wishful thinking.
 
-This is pure censoring from any perspective, to protect the private interests of powerful individuals against the people; not exactly the kind of behaviour you expect to see from a supposedly forward-striving, technology-oriented site like Hacker News. Maybe it's about time they renamed the site to better fit the new direction.
-
-While I realise that stepping on these kinds of toes in public may potentially put me in the middle of an epic shit storm; I'm a firm believer in transparency as an antidote to injustice and bullying; anything less just leaves the whole mess for our children to clean up.
+This is pure censoring by any measure, to protect the private interests of powerful individuals against the people; not exactly the kind of behaviour you expect to see from a supposedly forward-striving, technology-oriented site like Hacker News.
 
 peace, out

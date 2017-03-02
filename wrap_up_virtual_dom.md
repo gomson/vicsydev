@@ -24,7 +24,7 @@ The first thing we need to do is set up an end point for DOM callbacks from the 
 ```
 
 ### document
-With callbacks in place, it's time to set up an end point for the document. Including ```jquery``` and ```cl4l.js``` is mandatory for dynamic documents, but how that happens is up to user code. The document contains an input and a button, and the button is wired up to append a greeting when clicked.
+With callbacks in place, it's time to set up an end point for the document. Including jQuery and ```cl4l.js``` is mandatory, but how that happens is up to user code. The document contains an input and a button, and the button is wired up to append a greeting when clicked.
 
 ```
 (hunchentoot:define-easy-handler (demo :uri "/demo") ()
@@ -51,7 +51,7 @@ With callbacks in place, it's time to set up an end point for the document. Incl
 ```
 
 ### demo
-The repository contains a full [demo](https://github.com/codr4life/cl4l/blob/master/html-demo.lisp) and a prepared [www-catalog](https://github.com/codr4life/cl4l/tree/master/www). Once everything is in place, evaluating ```(start-html-demo)``` and pointing a web browser at ```127.0.0.1:8080/demo``` should get the show started.
+The [repository](https://github.com/codr4life/cl4l) contains a full [demo](https://github.com/codr4life/cl4l/blob/master/html-demo.lisp) and a prepared [www-catalog](https://github.com/codr4life/cl4l/tree/master/www). Once everything is in place, evaluating ```(start-html-demo)``` and pointing a web browser at ```127.0.0.1:8080/demo``` should get the show started.
 
 ```
 (defparameter *port* 8080)

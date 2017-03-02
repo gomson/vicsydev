@@ -2,10 +2,10 @@
 posted March 1st 2017, 11:00 pm
 
 ### preramble
-It's time to take the virtual DOM implementation [described](https://github.com/codr4life/vicsydev/blob/master/virtual_dom.md) in [previous](https://github.com/codr4life/vicsydev/blob/master/syncing_virtual_dom.md) [posts](https://github.com/codr4life/vicsydev/blob/master/calling_virtual_dom.md) for a first spin. We will use [Hunchentoot](http://weitz.de/hunchentoot/) to implement the HTTP end points. 
+It's time to take the virtual DOM implementation [described](https://github.com/codr4life/vicsydev/blob/master/virtual_dom.md) in [previous](https://github.com/codr4life/vicsydev/blob/master/syncing_virtual_dom.md) [posts](https://github.com/codr4life/vicsydev/blob/master/calling_virtual_dom.md) for a spin and write a complete web page with updates and callbacks in nothing but Common Lisp. We will use [Hunchentoot](http://weitz.de/hunchentoot/) to implement the HTTP end points. 
 
 ### callbacks
-The first thing we need to do is set up an end point for DOM callbacks from the browser. Any URL will do, as long as the same string is passed as ```:call-url``` when creating DOM documents. It's possible to use the same callback handler for multiple documents, or separate them at any granularity. Callbacks are executed by calling ```(html-call doc params)``` with parameters from the HTTP request, everything else is taken care of. Once the callback has finished running, or at any other granularity; updates may be retrieved with '(html-update-script doc)' and sent back to the client. Updates from the client are piggybacked on top of callbacks and applied before the actual callback is executed.
+The first thing we need to do is set up an end point for callbacks from the browser. Any URL will do, as long as the same string is passed as ```:call-url``` when creating DOM documents. It's possible to use the same callback handler for multiple documents, or group at any granularity. Callbacks are executed by calling ```(html-call doc params)``` with parameters from the HTTP request, everything else is taken care of. Once the callback has finished running, or at any other granularity; updates may be retrieved with '(html-update-script doc)' and sent back to the client. Updates from the client are piggybacked on top of callbacks and applied before the actual callback is executed.
 
 ```
 (defvar *docs* (make-hash-table :test 'equal))

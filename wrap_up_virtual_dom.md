@@ -70,6 +70,8 @@ The repository contains a full [demo](https://github.com/codr4life/cl4l/blob/mas
   (hunchentoot:stop *server*))
 ```
 
+![Screenshot](https://github.com/codr4life/vicsydev/blob/master/virtual-dom-demo.png)
+
 You may find more in the same spirit [here](http://vicsydev.blogspot.de/) and [here](https://github.com/codr4life/vicsydev), and a full implementation of this idea and more [here](https://github.com/codr4life/cl4l).
 
 peace, out

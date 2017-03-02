@@ -23,7 +23,7 @@ The first thing we need to do is set up an end point for callbacks from the brow
     (html-update-script doc)))
 ```
 
-### changes
+### mechanics
 The DOM logs the relevant jQuery code when content changes. It's possible to call 'html' to append content; any of the other (html-a/html-h/html-input/...) functions to add specific tags, 'add-html' for any tags that don't have special support, possibly even creating the tag manually using 'make-html'; empty using '(html-empty elem)', set attributes using '(setf (html-attr elem id) val)'; issue JavaScript updates using '(update-html doc script ...)'; anything that is supported when building the initial document. Everything is designed in a layered fashion, which means that it's always possible to access the underlying functionality directly. 
 
 ### documents
@@ -43,7 +43,7 @@ With callbacks in place, it's time to set up an end point for the document. Incl
                  :onclick
                  (lambda ()
                    (html body (format nil "Hello ~a!"
-                                      (html-attr input :value)))
+                                      (html-value input)))
                    (html-br body)))
     
     (html-br body)

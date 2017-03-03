@@ -7,7 +7,7 @@ There's plenty of talk about the need to practice empathy these days. Unfortunat
 ### real empathy
 There is, however; another, more authentic kind of empathy. The kind that recognizes that we're all one, literally; the kind that knows that when someone wins, we all win; the kind that never wishes for anyone to loose.
 
-### competition
+### competing
 The prevailing attitude among peers in today's software industry is one of fierce competition. Anyone who's ever posted original content that threatened to rock the boat knows what I'm talking about; unless you're considered an authority that is, egos totally dig authorities.
 
 ### changing direction

@@ -5,7 +5,7 @@ posted March 1st 2017, 11:00 pm
 It's time to take the virtual DOM implementation [described](https://github.com/codr4life/vicsydev/blob/master/virtual_dom.md) in [previous](https://github.com/codr4life/vicsydev/blob/master/syncing_virtual_dom.md) [posts](https://github.com/codr4life/vicsydev/blob/master/calling_virtual_dom.md) for a spin and write a complete web page with callbacks and updates in plain vanilla Common Lisp. We will use [Hunchentoot](http://weitz.de/hunchentoot/) to implement the HTTP end points. 
 
 ### callbacks
-The first thing we need to do is set up an end point for callbacks from the browser. Any URL will do, as long as the same string is passed as ```:call-url``` when creating DOM documents. It's possible to use the same callback handler for multiple documents, or group at any granularity. Callbacks are executed by calling ```(html-call doc params)``` with parameters from the HTTP request, everything else is taken care of. Once the callback has finished running, or at any other granularity; updates may be retrieved with '(html-update-script doc)' and sent back to the client. Updates from the client are piggybacked on top of callbacks and applied before the actual callback is executed. To ease integration, the DOM requires nothing but request parameters from callbacks.
+The first thing we need to do is set up an end point for callbacks from the browser. Any URL will do, as long as the same string is passed as ```:call-url``` when creating documents. It's possible to use the same callback handler for multiple documents, or group at any granularity. Callbacks are executed by calling ```(html-call doc params)``` with parameters from the HTTP request, everything else is taken care of by the DOM. Once the callback has finished, or at any other granularity; updates may be retrieved with '(html-update-script doc)' and sent back to the client. Updates from the client are piggybacked on top of callbacks and applied before the callback is executed.
 
 ```
 (defvar *docs* (make-hash-table :test 'equal))
@@ -23,11 +23,8 @@ The first thing we need to do is set up an end point for callbacks from the brow
     (html-update-script doc)))
 ```
 
-### mechanics
-The DOM logs the relevant jQuery code when content changes. It's possible to call 'html' to append content; any of the other (html-a/html-h/html-input/...) functions to add specific tags, 'add-html' for any tags that don't have special support, possibly even creating the tag manually using 'make-html'; empty using '(html-empty elem)', set attributes using '(setf (html-attr elem id) val)'; issue JavaScript updates using '(update-html doc script ...)'; anything that is supported when building the initial document. Everything is designed in a layered fashion, which means that it's always possible to access the underlying functionality directly. 
-
 ### documents
-With callbacks in place, it's time to set up an end point for the document. Including jQuery and ```cl4l.js``` is mandatory, but how that happens is up to user code. The document contains an input and a button, and the button is wired up to append a greeting when clicked. Each document carries a string id which defaults to unique and is included as a parameter in every callback request from the document.
+With callbacks in place, it's time to set up an end point for the document. Including jQuery and ```cl4l.js``` is mandatory, but how that happens is up to user code. The example document below contains an input and a button. The button is wired up to append a greeting when clicked. Each document carries a string id which defaults to unique and is included as a parameter in every callback request.
 
 ```
 (hunchentoot:define-easy-handler (demo :uri "/demo") ()

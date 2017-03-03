@@ -2,13 +2,10 @@
 posted March 3rd 2017, 8:00pm
 
 ### empathy
-There's plenty of talk about the need to practice empathy these days. Unfortunately, the only kind of empathy that's recognized and preached as such is the kind that increases profits by making users happy and letting management off the hook.
-
-### real empathy
-There is, however; another, more authentic kind of empathy. The kind that recognizes that we're all one, literally; the kind that knows that when someone wins, we all win; the kind that never wishes for anyone to loose.
+There's plenty of talk about the need to practice empathy these days. Unfortunately, the only kind of empathy that's recognized and preached as such is the kind that increases profits by making users happy and letting management off the hook. There is, however; another, more authentic kind of empathy. The kind that recognizes that we're all one, literally; the kind that knows that when someone wins, we all win; the kind that never wishes for anyone to loose.
 
 ### competing
-The prevailing attitude among peers in today's software industry is one of fierce competition. Anyone who's ever posted original content that threatened to rock the boat knows what I'm talking about; unless you're considered an authority that is, egos totally dig authorities.
+The prevailing attitude among peers in today's software industry is one of fierce competition. Anyone who's ever posted original content that threatens the status quo knows what I'm talking about; unless you're considered an authority that is, egos totally dig authorities. While we seem to be somewhat capable of feeling empathy for management and users, recognizing each other seems beyond most.
 
 ### changing direction
 Ten years ago, I took a 20m free fall to the ground while out mountain climbing with a friend; smashing one of my vertibraes and setting me up for a life time of chronic pain. I was 20 years into a successful software developer career at the time, bringing home $5k a month; and expected to be able to continue my frivolous, economically independent life style for quite some time. While I wouldn't trade the change of direction for anything in the world, I often miss not having to worry about money. For several years I tried getting back in the saddle; trying to find companies desperate enough for my extensive experience to be willing to compromise enough on rules and regulations for me to feel at home. Which finally brought me to the point where I briefly considered giving up entirely, since human needs no longer seem to be on the radar in our industry.

@@ -25,8 +25,9 @@ CL4L-HTML> (let* ((doc (html-doc :dynamic? t))
 <html>
 <head id="head"><script id="jquery-js" src="scripts/jquery.js"></script></head>
 <body id="body"/>
-</html>$('#body').append('<h1 id="hdr">foo</h1>');
+</html>
 
+$('#body').append('<h1 id="hdr">foo</h1>');
 $('#hdr').attr('style', 'text-decoration: underline');
 $('#hdr').append('<a href="http://www.foo.com" id="lnk">click me</a>');
 ```

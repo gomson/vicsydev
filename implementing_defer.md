@@ -10,7 +10,7 @@ C
 bool called = false;
     
 {
-  C4WITH_DEFER() { called = true; };
+  C4WITH_DEFER(basic) { called = true; };
   assert(!called);
 }
     

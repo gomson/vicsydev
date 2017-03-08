@@ -1,4 +1,4 @@
-# [vicsy/dev](https://github.com/codr4life/vicsydev) | implementing defer()
+# [vicsy/dev](https://github.com/codr4life/vicsydev) | implementing defer
 posted Jan 27th 2017, 4:20 pm
 
 ### preramble

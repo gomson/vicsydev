@@ -80,6 +80,33 @@ The dimensions and granularity I want to use for grouping tests depends on the s
 #define C4TAGS(...)				\
   C4ARRAY(const char *, ##__VA_ARGS__)		\
 
+#define C4TEST(name, ...)						\
+  struct c4timer name(int_fast32_t warmups, int_fast32_t reps,		\
+		      struct c4bset *run, struct c4bset *skip) {	\
+    struct c4timer timer;						\
+    c4timer_reset(&timer);						\
+    if (!c4test_match(C4STR(name), run, skip)) { return timer; }	\
+									\
+    printf("%-20s", C4STR(name));					\
+    { __VA_ARGS__; }							\
+									\
+    C4TRY("test") {							\
+      for (int32_t i = 0; i < warmups; i++) { __VA_ARGS__; }		\
+									\
+      C4DO_TIMER(&timer) {						\
+	for (int32_t i = 0; i < reps; i++) { __VA_ARGS__; }		\
+      }									\
+    }									\
+									\
+    C4CATCH(e, NULL) {							\
+      c4error_print(e, stdout);						\
+      c4error_free(e);							\
+    }									\
+  									\
+    printf("%14.3lfk\n", c4timer_msecs(&timer) / 1000.0);		\
+    return timer;							\
+  }									\
+
 bool c4test_match(const char *name, struct c4bset *run, struct c4bset *skip) {
     struct c4bset tags;							
     c4bset_init(&tags, sizeof(char *), &c4cmp_str);			

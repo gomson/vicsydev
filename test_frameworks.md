@@ -70,11 +70,10 @@ struct c4timer c4suite_run(struct c4suite *self,
     *(const char **)c4bset_add(&skips, skip + i, NULL) = skip[i]; 
   }
 
-  int_fast16_t nfixtures = self->fixtures.len;
   struct c4timer timer = c4fixture_next(suite, 
 					warmups, reps, 
 					run, skip, 
-					nfixtures ? nfixtures-1 : 0)
+					self->fixtures.len)
   
   c4bset_free(&runs);
   c4bset_free(&skips);

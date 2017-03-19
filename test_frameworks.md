@@ -53,6 +53,34 @@ The proper way to implement fixtures is to provide means to execute the rest of 
 #define C4FIXTURE_NEXT()						\
   timer = c4fixture_next(suite, warmups, reps, run, skip, fixture)	\
 
+struct c4timer c4suite_run(struct c4suite *self,
+			   int64_t warmups, int64_t reps,
+			   const char **run, int_fast8_t nrun,
+			   const char **skip, int_fast8_t nskip) {
+
+  struct c4bset runs, skips;
+
+  c4bset_init(&runs, sizeof(char *), &c4cmp_str);
+  for (int_fast8_t i = 0; i < nrun; i++) { 
+    *(const char **)c4bset_add(&runs, run + i, NULL) = run[i]; 
+  }
+
+  c4bset_init(&skips, sizeof(char *), &c4cmp_str);
+  for (int_fast8_t i = 0; i < nskip; i++) { 
+    *(const char **)c4bset_add(&skips, skip + i, NULL) = skip[i]; 
+  }
+
+  int_fast16_t nfixtures = self->fixtures.len;
+  struct c4timer timer = c4fixture_next(suite, 
+					warmups, reps, 
+					run, skip, 
+					nfixtures ? nfixtures-1 : 0)
+  
+  c4bset_free(&runs);
+  c4bset_free(&skips);
+  return timer;
+}
+
 struct c4timer c4fixture_next(struct c4suite *suite,		       
 			      int_fast32_t warmups, int_fast32_t reps,	
 			      struct c4bset *run, struct c4bset *skip,	

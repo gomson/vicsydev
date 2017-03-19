@@ -2,7 +2,7 @@
 posted Mar 18th 2017, 04:00 am
 
 ### preramble
-Hi, my name is Andreas and I prefer rolling my own test frameworks. I tried my best for several years, really did; but gradually came to the conclustion that I just couldn't justify wasting more energy on arbitrary limitations. Testing is difficult enough the way it is, both technically and emotionally; the last thing needed is long-winded ceremonies and hoops to jump through. This post describes a test framework in reasonably portable C that does it's thing and gets out of the way.
+Hi, my name is Andreas and I prefer rolling my own test frameworks. I tried my best for several years, really did; but gradually came to the conclustion that I simply couldn't justify wasting more energy on arbitrary limitations. Testing is difficult enough, technically and emotionally; the last thing needed is long-winded ceremonies and hoops to jump through. This post describes a test framework in reasonably portable C that does it's thing and gets out of the way.
 
 ```C
 #include "c4l/test.h"
@@ -68,7 +68,7 @@ struct c4timer c4fixture_next(struct c4suite *suite,
 ```
 
 ### dynamic groups
-The dimensions and granularity I want to use for grouping tests depends on the scenario. Sometimes I want a quick regression check for the entire suite; at other times I want to run all database-dependent tests, or skip them as the case may be; this means that strict hierarchies like JUnit are out. Golang kind of provides the required flexibility, but requires discipline when naming tests and serious regex-fu skills for triggering complex scenarios. The best solution I've come up with is to use tags, things like application name; module, class or type, bug-tracker id; and whatever else is needed to create a unique name; as time goes by more potential categories tend to emerge almost by themselves. When running tests, two sets of tags may be specified; tests that have all their tags in the first set are triggered, unless they have any tags in the second set.
+The dimensions and granularity I want to use for grouping tests depends on the scenario. Sometimes I want a quick regression check for the entire suite; at other times I want to run all database-dependent tests, or skip them as the case may be; this means that strict hierarchies like JUnit are out. Golang kind of provides the required flexibility, but requires serious regex-fu skills for triggering complex scenarios. The best solution I've come up with is to use tags instead of names and hierarchies; things like application name, module, class or type, bug-tracker id; and whatever else is needed to create a unique name. As time goes by more potential categories tend to emerge almost by themselves. When running tests, two sets of tags may be specified; tests that have all their tags in the first set are triggered, unless they have any tags in the second set.
 
 ```C
 #define C4ARRAY(type, ...)					\

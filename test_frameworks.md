@@ -177,6 +177,6 @@ foo_bar                      0.683k
 TOTAL                        0.001M
 ```
 
-You may find more posts in the same spirit <a href="http://vicsydev.blogspot.de/">here</a>, and a full implementation of this idea and more <a href="https://github.com/codr4life/libc4l">here</a>.
+You may find more posts in the same spirit <a href="http://vicsydev.blogspot.de/">here</a>, and a full implementation of these ideas and more <a href="https://github.com/codr4life/libc4l">here</a>.
 
 peace, out

@@ -2,19 +2,19 @@
 posted Mar 19th 2017, 11:00 am
 
 ### preramble
-Strategies for scoping resources in C generally falls to either end of the spectrum between injecting ```for```-statements and using paired begin/end-macros. The first approach requires the entire scope to be implemented by user code, rendering it invisible to the macro; while begin/end-macros lead to brittle, alien looking code. This post describes a middle way that uses varargs to pass reusable code blocks to macros.
+Strategies for scoping resources in C generally falls to either end of the spectrum between injecting ```for```-statements and using paired begin/end-macros. The first approach requires the entire scope to be implemented by user code, rendering it invisible to the macro; and prevents using break/continue in the macro body. While begin/end-macros lead to brittle, alien looking code. This post describes a middle way that uses varargs to pass reusable code blocks to macros.
 
 ### pass the code
-The reason we need varargs is that more complex blocks risk being interpreted as multiple parameters by the pre-processor.
+The reason we need varargs is that more complex blocks risk being interpreted as multiple parameters by the pre-processor. Returning from within the macro body will not execute the clean up code.
 
 ```C
 #define DO_LOCK(lock, ...)  \
-  ...                       \
+  acquire_lock(&lock);      \
   __VA_ARGS__;	            \
-  ...                       \
+  release_lock(&lock);      \
 
 DO_LOCK(&lock, { 
-  ...
+  // executed with acquired lock
 });
 ```
 

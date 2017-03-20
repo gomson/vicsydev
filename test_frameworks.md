@@ -1,4 +1,4 @@
-# [vicsy/dev](https://github.com/codr4life/vicsydev) | on the sad state of test frameworks
+# [vicsy/dev](https://github.com/codr4life/vicsydev) | the sad state of test frameworks
 posted Mar 18th 2017, 04:00 am
 
 ### preramble

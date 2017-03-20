@@ -165,6 +165,18 @@ struct c4fixture *c4suite_fixture(struct c4suite *self,
   return c4fixture_init(c4bset_ins(&self->fixtures, pos), self, name, fn);
 }
 
+static void parse_tags(const char *in, struct c4bset *out) {
+  char *n = strcpy(c4acq(strlen(in)+1), in);		
+  char *start = n, *end = NULL;					
+  while ((end = strstr(start, "_"))) {				
+    *end = 0;								
+    *(char **)c4bset_add(out, &start, NULL) = start;		
+    start = end + 1;						
+  }									
+									
+  if (end != start) { *(char **)c4bset_add(out, &start, NULL) = start; }
+}
+
 struct c4fixture *c4fixture_init(struct c4fixture *self, 
 				 struct c4suite *suite,
 				 const char *name, 

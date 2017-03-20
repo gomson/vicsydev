@@ -39,6 +39,6 @@ struct c4timer c4suite_run(struct c4suite *self,
 c4suite_run(&tests, warmups, reps, C4TAGS("foo", "bar"), C4TAGS("baz"));
 ```
 
-You may find more posts in the same spirit <a href="http://vicsydev.blogspot.de/">here</a>, and several implementations of this idea and more <a href="https://github.com/codr4life/libc4l">here</a>.
+You may find more posts in the same spirit <a href="http://vicsydev.blogspot.de/">here</a>, and several examples of these ideas and more <a href="https://github.com/codr4life/libc4l">here</a>.
 
 peace, out

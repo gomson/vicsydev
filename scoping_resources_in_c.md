@@ -16,11 +16,10 @@ The reason we need varargs is that more complex blocks risk being interpreted as
 DO_LOCK(&lock, { 
   ...
 });
-
 ```
 
 ### more on varargs
-Speaking of varargs, I'm gradually loosing patience with using them for anything but the most idiomatic scenarios. Using array literals instead allows runtime processing of arguments and passing multiple varargs to the same macro/function, while leaving varargs available for code blocks.
+Speaking of varargs, I'm suggest reserving them for idiomatic scenarios. Exposing array literals instead allows runtime processing of arguments and passing multiple varargs to the same macro/function, while leaving varargs available for code blocks.
 
 ```C
 #define C4ARRAY(type, ...)					\

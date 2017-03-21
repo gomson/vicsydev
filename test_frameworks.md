@@ -2,7 +2,7 @@
 posted Mar 18th 2017, 04:00 am
 
 ### preramble
-Hi, my name is Andreas and I prefer rolling my own test frameworks. I tried my best for several years, really did; but gradually came to the conclustion that I simply couldn't justify wasting more energy on arbitrary limitations. Testing is difficult enough, technically and emotionally; the last thing needed is long-winded ceremonies and hoops to jump through. This post describes a test framework in reasonably portable C that does it's thing and gets out of the way.
+Hi, my name is Andreas and I prefer rolling my own test frameworks. I tried my best for several years, really did; but gradually came to the conclustion that I simply couldn't justify wasting more energy on arbitrary limitations. Testing is difficult enough, technically and emotionally; the last thing needed is long-winded ceremonies and hoops to jump through. This post describes a test framework in reasonably portable C that does its thing and gets out of the way.
 
 ```C
 #include "c4l/test.h"

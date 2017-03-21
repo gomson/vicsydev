@@ -5,8 +5,8 @@ posted Mar 21st 2017, 02:00 am
 Despite their bad reputation, singletons remain a very useful abstraction. Some things are system global, period; and no amount of wrapping is going to change that fact. Declaring singletons as thread-local takes away the multi-threaded pain, which is the only objection to their use that really holds any substance.
 
 ```
-C4SINGLETON(c4dom_attr_escape, c4buf_escape, 
-	    C4ARRAY(struct c4buf_escape_it,
+C4SINGLETON(c4dom_attr_escape, c4escape, 
+	    C4ARRAY(struct c4esc,
 		    {'<',  "&lt;"}, 
 		    {'>',  "&gt;"},
 		    {'&',  "&amp;"},
@@ -19,14 +19,13 @@ C4SINGLETON(c4dom_attr_escape, c4buf_escape,
 #define C4ARRAY_LEN(type, ...)				\
   (sizeof((type[]){__VA_ARGS__}) / sizeof(type))	\
 
-struct c4buf_escape_it {
+struct c4esc {
   char ch;
   const char *str;
 };
 
-struct c4buf_escape *c4buf_escape_init(struct c4buf_escape *self, 
-				       struct c4buf_escape_it *its, 
-				       int_fast32_t nits);
+struct c4escape *c4escape_init(struct c4escape *self, 
+			       struct c4esc *its, int_fast32_t nits);
 ```
 
 ### implementation

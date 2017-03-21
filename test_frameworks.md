@@ -145,6 +145,7 @@ The proper way to implement fixtures is to provide means to execute the rest of 
 ```C
 struct c4fixture {
   const char *name;
+  char *tags_data;
   struct c4suite *suite;
   struct c4ls node;
   struct c4bset tags;
@@ -165,9 +166,8 @@ struct c4fixture *c4suite_fixture(struct c4suite *self,
   return c4fixture_init(c4bset_ins(&self->fixtures, pos), self, name, fn);
 }
 
-static void parse_tags(const char *in, struct c4bset *out) {
-  char *n = strcpy(c4acq(strlen(in)+1), in);		
-  char *start = n, *end = NULL;					
+static void parse_tags(char *in, struct c4bset *out) {
+  char *start = in, *end = NULL;					
 
   while ((end = strstr(start, "_"))) {				
     *end = 0;								
@@ -183,10 +183,10 @@ struct c4fixture *c4fixture_init(struct c4fixture *self,
 				 const char *name, 
 				 c4fixture_fn fn) {
   self->suite = suite;
-  self->name = name;
+  self->name = strcpy(c4acq(strlen(name)+1), name);
   self->fn = fn;
   c4bset_init(&self->tags, sizeof(const char *), &c4cmp_str);
-  parse_tags(name, &self->tags);
+  parse_tags(self->name, &self->tags);
   c4ls_prepend(&suite->root, &self->node);
   return self;
 }
